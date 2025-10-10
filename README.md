@@ -9,3 +9,4 @@
 
 ## Submission Notes
 Push all files before the deadline. This repo is private and only visible to you and instructors.
+# Synced update - Added ProjectTemplate
