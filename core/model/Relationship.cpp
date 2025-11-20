@@ -71,11 +71,16 @@ std::string Relationship::toString() const {
 }
 
 std::string Relationship::toJson() const {
-    return "{}";
-}
-
-std::unique_ptr<Relationship> Relationship::fromJson(const std::string& json) {
-    return nullptr;
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"id\":\"" << id << "\",";
+    oss << "\"sourceConceptId\":\"" << sourceConceptId << "\",";
+    oss << "\"targetConceptId\":\"" << targetConceptId << "\",";
+    oss << "\"type\":\"" << type << "\",";
+    oss << "\"isDirected\":" << (isDirected ? "true" : "false") << ",";
+    oss << "\"weight\":" << weight;
+    oss << "}";
+    return oss.str();
 }
 
 std::string Relationship::generateId() {

@@ -44,9 +44,8 @@ public:
     bool operator==(const Relationship& other) const;
     std::string toString() const;
     
-    // JSON serialization (to be implemented)
+    // JSON serialization
     std::string toJson() const;
-    static std::unique_ptr<Relationship> fromJson(const std::string& json);
 
 private:
     static std::string generateId();
