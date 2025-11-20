@@ -1,14 +1,54 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/8Cy36LS2)
-[![Work in MakeCode](https://classroom.github.com/assets/work-in-make-code-8824cc13a1a3f34ffcd245c82f0ae96fdae6b7d554b6539aec3a03a70825519c.svg)](https://classroom.github.com/online_ide?assignment_repo_id=21430000&assignment_repo_type=AssignmentRepo)
-# Assignment 2 – Low-Fidelity Prototype
+# Assignment2 - Mental Model Visualization
 
-## What to Submit
+AI powered mental model visualization with graph based link prediction using Qt6 and igraph.
 
-- Upload your report in the `/docs` folder
+## Project Structure
 
-## Folder Structure
-- `/docs/report.pdf`
+```
+├── code/           # Source code
+│   ├── core/       # Core logic (models, AI, persistence)
+│   ├── ui/         # User interface components
+│   └── main.cpp    # Application entry point
+├── docs/           # Documentation
+├── tests/          # Test files
+└── README.md       # This file
+```
 
-## Submission Notes
-Push all files before the deadline. This repo is private and only visible to you and instructors.
-# Synced update - Added ProjectTemplatee
+## Quick Start
+
+```bash
+# Install dependencies (macOS)
+brew install qt6 igraph cmake
+
+# Build and run
+cd code
+mkdir build && cd build
+cmake .. && make
+./bin/assignment2
+```
+
+See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation instructions.
+
+## Features
+
+- **Interactive Graph Visualization**: Drag and drop mental model editor
+- **AI Link Prediction**: Three igraph-powered algorithms:
+  - Common Neighbors
+  - Jaccard Coefficient  
+  - Preferential Attachment
+- **AI Assistant**: Cohere-powered concept descriptions and suggestions
+- **JSON Persistence**: Save and load mental models
+- **Clean Architecture**: Modular design with separation of concerns
+
+## Documentation
+
+- [Installation Guide](docs/INSTALL.md) - Setup instructions for different platforms
+- [Original README](docs/README.md) - Detailed project information
+
+## Development
+
+Built with:
+- **Qt6** for cross-platform GUI
+- **igraph** for graph algorithms
+- **C++17** with modern practices
+- **CMake** for build system

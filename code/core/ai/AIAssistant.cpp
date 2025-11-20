@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include <QFile>
+#include <QDir>
 #include <QTextStream>
 #include <QIODevice>
 #include <unordered_map>
@@ -47,18 +48,28 @@ public:
     }
     
     void loadFromEnvFile() {
-        QFile envFile(".env");
-        if (envFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QTextStream in(&envFile);
-            while (!in.atEnd()) {
-                QString line = in.readLine().trimmed();
-                if (line.startsWith("COHERE_API_KEY=")) {
-                    QString value = line.mid(15); // Skip "COHERE_API_KEY="
-                    apiKey = value;
-                    break;
+        QStringList envPaths = {
+            "../.env", // Parent directory (code/.env when running from build/)
+            ".env", // Current directory
+            "../../.env", // Two levels up
+            QDir::homePath() + "/.env" // Home directory
+        };
+        
+        for (const QString& path : envPaths) {
+            QFile envFile(path);
+            if (envFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&envFile);
+                while (!in.atEnd()) {
+                    QString line = in.readLine().trimmed();
+                    if (line.startsWith("COHERE_API_KEY=")) {
+                        QString value = line.mid(15); // Skip "COHERE_API_KEY="
+                        apiKey = value;
+                        envFile.close();
+                        return;
+                    }
                 }
+                envFile.close();
             }
-            envFile.close();
         }
     }
     
