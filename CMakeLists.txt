@@ -28,7 +28,6 @@ set(CORE_SOURCES
     core/nlp/Commands.cpp
     core/nlp/CommandFactory.cpp
     core/persistence/ModelManager.cpp
-    core/common/QLinkException.cpp
 )
 
 set(CORE_HEADERS
