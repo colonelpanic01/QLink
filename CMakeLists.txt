@@ -6,6 +6,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
 
+# get igraph package since installation paths vary by system (I used homebrew so the latter only works and pkgconfig cannot find it for the life of me )
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+    pkg_check_modules(IGRAPH igraph)
+    if(IGRAPH_FOUND)
+        set(IGRAPH_INCLUDE_DIRS ${IGRAPH_INCLUDE_DIRS})
+        set(IGRAPH_LIBRARIES ${IGRAPH_LIBRARIES})
+        set(IGRAPH_LIBRARY_DIRS ${IGRAPH_LIBRARY_DIRS})
+    endif()
+endif()
+
+if(NOT IGRAPH_FOUND)
+    find_path(IGRAPH_INCLUDE_DIR igraph/igraph.h PATHS /usr/include /usr/local/include /opt/homebrew/include)
+    find_library(IGRAPH_LIBRARY igraph PATHS /usr/lib /usr/local/lib /opt/homebrew/lib)
+    
+    if(IGRAPH_INCLUDE_DIR AND IGRAPH_LIBRARY)
+        set(IGRAPH_INCLUDE_DIRS ${IGRAPH_INCLUDE_DIR})
+        set(IGRAPH_LIBRARIES ${IGRAPH_LIBRARY})
+    else()
+        message(FATAL_ERROR "igraph not found. Please install igraph library.")
+    endif()
+endif()
+
 # Enable Qt's MOC (Meta-Object Compiler)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -63,11 +86,18 @@ set(UI_HEADERS
 
 # Create core library
 add_library(Assignment2Core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
-target_link_libraries(Assignment2Core Qt6::Core Qt6::Network)
+target_link_libraries(Assignment2Core Qt6::Core Qt6::Network ${IGRAPH_LIBRARIES})
+target_include_directories(Assignment2Core PRIVATE ${IGRAPH_INCLUDE_DIRS})
+if(IGRAPH_LIBRARY_DIRS)
+    target_link_directories(Assignment2Core PRIVATE ${IGRAPH_LIBRARY_DIRS})
+endif()
 
 # Create main executable
 add_executable(assignment2 ${UI_SOURCES} ${UI_HEADERS})
 target_link_libraries(assignment2 Assignment2Core Qt6::Core Qt6::Widgets Qt6::Network)
+if(IGRAPH_LIBRARY_DIRS)
+    target_link_directories(assignment2 PRIVATE ${IGRAPH_LIBRARY_DIRS})
+endif()
 
 # Enable testing
 # enable_testing()
