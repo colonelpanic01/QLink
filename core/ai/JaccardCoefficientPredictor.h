@@ -9,11 +9,9 @@
 namespace qlink {
 
 /**
- * Link predictor using Jaccard Coefficient algorithm
- * Jaccard coefficient = |N(u) ∩ N(v)| / |N(u) ∪ N(v)|
- * where N(u) is the set of neighbors of node u
+ * Link predictor using Jaccard Coefficient algorithm with igraph
  */
-class JaccardCoefficientPredictor : public ILinkPredictor {
+class JaccardCoefficientPredictor : public IGraphLinkPredictor {
     Q_OBJECT
 
 public:
@@ -27,29 +25,6 @@ public:
     std::string getAlgorithmName() const override;
     std::string getDescription() const override;
 
-private:
-
-private:
-    /**
-     * Calculate Jaccard coefficient between two concepts
-     * @param model The mental model containing the graph
-     * @param concept1Id ID of first concept
-     * @param concept2Id ID of second concept
-     * @return Jaccard coefficient (0.0 to 1.0)
-     */
-    double calculateJaccardCoefficient(const MentalModel& model, 
-                                     const std::string& concept1Id, 
-                                     const std::string& concept2Id);
-
-    /**
-     * Get all neighbors of a concept
-     * @param model The mental model
-     * @param conceptId ID of the concept
-     * @return Set of neighbor concept IDs
-     */
-    std::set<std::string> getNeighbors(const MentalModel& model, const std::string& conceptId);
-
-    // Note: Using standard library set operations instead of custom methods
 };
 
 } // namespace qlink

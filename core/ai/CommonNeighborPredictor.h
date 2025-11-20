@@ -8,10 +8,10 @@
 namespace qlink {
 
 /**
- * Common Neighbors algorithm for link prediction where the
+ * Common Neighbors algorithm for link prediction using igraph
  * score = number of common neighbors between two concepts
  */
-class CommonNeighborPredictor : public ILinkPredictor {
+class CommonNeighborPredictor : public IGraphLinkPredictor {
     Q_OBJECT
 
 public:
@@ -24,26 +24,6 @@ public:
         return "Predicts links based on the number of common neighbors between concepts"; 
     }
 
-private:
-    /**
-     * Calculate common neighbor score between two concepts
-     * @param model The mental model
-     * @param concept1Id ID of first concept
-     * @param concept2Id ID of second concept
-     * @return Number of common neighbors
-     */
-    int calculateCommonNeighbors(const MentalModel& model,
-                                const std::string& concept1Id,
-                                const std::string& concept2Id);
-    
-    /**
-     * Get neighbors of a concept
-     * @param model The mental model
-     * @param conceptId ID of the concept
-     * @return Set of neighbor IDs
-     */
-    std::vector<std::string> getNeighbors(const MentalModel& model, 
-                                         const std::string& conceptId);
 };
 
 } // namespace qlink

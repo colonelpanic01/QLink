@@ -1,63 +1,59 @@
 #include "PreferentialAttachmentPredictor.h"
-#include <algorithm>
+#include "../model/MentalModel.h"
 
 namespace qlink {
 
 PreferentialAttachmentPredictor::PreferentialAttachmentPredictor(QObject *parent)
-    : ILinkPredictor(parent) {
+    : IGraphLinkPredictor(parent) {
 }
 
 std::vector<LinkSuggestion> PreferentialAttachmentPredictor::predictLinks(const MentalModel& model, int maxSuggestions) {
-    std::vector<LinkSuggestion> suggestions;
     const auto& concepts = model.getConcepts();
     
     if (concepts.size() < 2) {
-        return suggestions;
+        return std::vector<LinkSuggestion>();
     }
     
-    std::vector<std::pair<double, std::pair<std::string, std::string>>> scoredPairs;
+    // Convert to igraph
+    igraph_t graph;
+    std::map<std::string, int> conceptToVertex;
+    convertToIGraph(model, &graph, conceptToVertex);
     
-    // Calculate preferential attachment score for all pairs of unconnected concepts
-    for (size_t i = 0; i < concepts.size(); ++i) {
-        for (size_t j = i + 1; j < concepts.size(); ++j) {
-            const std::string& concept1Id = concepts[i]->getId();
-            const std::string& concept2Id = concepts[j]->getId();
+    // Calculate similarity matrix for preferential attachment
+    igraph_matrix_t similarity;
+    igraph_matrix_init(&similarity, 0, 0);
+    
+    int numVertices = igraph_vcount(&graph);
+    igraph_matrix_resize(&similarity, numVertices, numVertices);
+    igraph_matrix_fill(&similarity, 0.0);
+    
+    // Get degrees for all vertices
+    igraph_vector_int_t degrees;
+    igraph_vector_int_init(&degrees, numVertices);
+    igraph_degree(&graph, &degrees, igraph_vss_all(), IGRAPH_ALL, IGRAPH_NO_LOOPS);
+    
+    // Calculate preferential attachment scores
+    for (int i = 0; i < numVertices; ++i) {
+        for (int j = i + 1; j < numVertices; ++j) {
+            double degree_i = (double)VECTOR(degrees)[i];
+            double degree_j = (double)VECTOR(degrees)[j];
             
-            // Skip if concepts are already connected
-            if (model.areConnected(concept1Id, concept2Id)) {
-                continue;
-            }
+            // Preferential attachment score = degree(i) * degree(j)
+            // Add 1 to handle isolated nodes
+            double score = (degree_i + 1) * (degree_j + 1);
             
-            double score = calculatePreferentialAttachmentScore(model, concept1Id, concept2Id);
-            
-            if (score > 0.0) {
-                scoredPairs.emplace_back(score, std::make_pair(concept1Id, concept2Id));
-            }
+            MATRIX(similarity, i, j) = score;
+            MATRIX(similarity, j, i) = score;
         }
     }
     
-    // Sort by score (highest first)
-    std::sort(scoredPairs.begin(), scoredPairs.end(), 
-              [](const auto& a, const auto& b) { return a.first > b.first; });
+    // Convert to suggestions  
+    auto suggestions = convertSimilarityToSuggestions(&similarity, conceptToVertex, model, maxSuggestions, "Preferential Attachment");
     
-    // Convert top results to LinkSuggestions
-    int count = std::min(maxSuggestions, static_cast<int>(scoredPairs.size()));
-    suggestions.reserve(count);
-    
-    for (int i = 0; i < count; ++i) {
-        const auto& pair = scoredPairs[i];
-        double confidence = pair.first;
-        const std::string& sourceId = pair.second.first;
-        const std::string& targetId = pair.second.second;
-        
-        int degree1 = getDegree(model, sourceId);
-        int degree2 = getDegree(model, targetId);
-        
-        std::string explanation = "Preferential attachment (degrees: " + 
-                                 std::to_string(degree1) + " x " + std::to_string(degree2) + ")";
-        
-        suggestions.emplace_back(sourceId, targetId, "relates_to", confidence, explanation);
-    }
+    // Cleanup
+    igraph_vector_int_destroy(&degrees);
+    igraph_matrix_destroy(&similarity);
+    cleanupIGraph(&graph);
     
     return suggestions;
 }
@@ -67,32 +63,7 @@ std::string PreferentialAttachmentPredictor::getAlgorithmName() const {
 }
 
 std::string PreferentialAttachmentPredictor::getDescription() const {
-    return "Predicts links based on node degrees: score = degree(u) x degree(v)";
-}
-
-double PreferentialAttachmentPredictor::calculatePreferentialAttachmentScore(const MentalModel& model, 
-                                                                           const std::string& concept1Id, 
-                                                                           const std::string& concept2Id) {
-    int degree1 = getDegree(model, concept1Id);
-    int degree2 = getDegree(model, concept2Id);
-    
-    // Add 1 to handle isolated nodes, normalize to 0-1 range
-    double score = static_cast<double>((degree1 + 1) * (degree2 + 1));
-    return std::min(1.0, score / 100.0); // Normalize with reasonable upper bound
-}
-
-int PreferentialAttachmentPredictor::getDegree(const MentalModel& model, const std::string& conceptId) {
-    int degree = 0;
-    const auto& relationships = model.getRelationships();
-    
-    for (const auto& relationship : relationships) {
-        if (relationship->getSourceConceptId() == conceptId || 
-            relationship->getTargetConceptId() == conceptId) {
-            degree++;
-        }
-    }
-    
-    return degree;
+    return "Predicts links using igraph-based node degrees: score = degree(u) x degree(v)";
 }
 
 } // namespace qlink

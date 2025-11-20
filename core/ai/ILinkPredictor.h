@@ -4,11 +4,12 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <map>
 #include "../common/DataStructures.h"
+#include <igraph/igraph.h>
 
 namespace qlink {
 
-// Forward declaration
 class MentalModel;
 
 /**
@@ -40,6 +41,37 @@ public:
      * @return Algorithm description
      */
     virtual std::string getDescription() const = 0;
+};
+
+/**
+ * Base class for igraph-based link predictors
+ * Provides common functionality for converting MentalModel to igraph format
+ */
+class IGraphLinkPredictor : public ILinkPredictor {
+    Q_OBJECT
+
+protected:
+    explicit IGraphLinkPredictor(QObject *parent = nullptr) : ILinkPredictor(parent) {}
+    
+    /**
+     * Convert MentalModel to igraph structure
+     */
+    void convertToIGraph(const MentalModel& model, igraph_t* graph, std::map<std::string, int>& conceptToVertex);
+    
+    /**
+     * Convert igraph similarity matrix to LinkSuggestions
+     */
+    std::vector<LinkSuggestion> convertSimilarityToSuggestions(
+        const igraph_matrix_t* similarity,
+        const std::map<std::string, int>& conceptToVertex,
+        const MentalModel& model,
+        int maxSuggestions,
+        const std::string& algorithmName);
+        
+    /**
+     * Clean up igraph resources
+     */
+    void cleanupIGraph(igraph_t* graph);
 };
 
 /**
