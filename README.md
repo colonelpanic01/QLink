@@ -8,9 +8,9 @@ AI powered mental model visualization with graph based link prediction using Qt6
 ├── code/           # Source code
 │   ├── core/       # Core logic (models, AI, persistence)
 │   ├── ui/         # User interface components
+│   ├── tests/      # Test files
 │   └── main.cpp    # Application entry point
 ├── docs/           # Documentation
-├── tests/          # Test files
 └── README.md       # This file
 ```
 
@@ -27,7 +27,7 @@ cmake .. && make
 ./bin/assignment2
 ```
 
-See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation instructions.
+See [docs/INSTALL.md](docs/INSTALL.md) for the installation instructions
 
 ## Features
 
@@ -36,14 +36,13 @@ See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation instructions.
   - Common Neighbors
   - Jaccard Coefficient  
   - Preferential Attachment
-- **AI Assistant**: Cohere-powered concept descriptions and suggestions
+- **AI Assistant**: Added cohere to provide concept descriptions, suggestions, and relationship context
 - **JSON Persistence**: Save and load mental models
-- **Clean Architecture**: Modular design with separation of concerns
+- **Clean Architecture**: Modular design w/ separation of concerns
 
 ## Documentation
 
 - [Installation Guide](docs/INSTALL.md) - Setup instructions for different platforms
-- [Original README](docs/README.md) - Detailed project information
 
 ## Development
 
