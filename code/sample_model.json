@@ -1,0 +1,164 @@
+{
+  "concepts": [
+    {
+      "id": "machine-learning",
+      "name": "Machine Learning",
+      "description": "A subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed",
+      "position": {
+        "x": 100,
+        "y": 100
+      }
+    },
+    {
+      "id": "neural-networks",
+      "name": "Neural Networks",
+      "description": "Computing systems inspired by biological neural networks, consisting of interconnected nodes that process information",
+      "position": {
+        "x": 300,
+        "y": 150
+      }
+    },
+    {
+      "id": "deep-learning",
+      "name": "Deep Learning",
+      "description": "A subset of machine learning using neural networks with multiple layers to model complex patterns in data",
+      "position": {
+        "x": 500,
+        "y": 100
+      }
+    },
+    {
+      "id": "supervised-learning",
+      "name": "Supervised Learning",
+      "description": "Machine learning approach where algorithms learn from labeled training data to make predictions",
+      "position": {
+        "x": 100,
+        "y": 300
+      }
+    },
+    {
+      "id": "unsupervised-learning",
+      "name": "Unsupervised Learning", 
+      "description": "Machine learning approach that finds patterns in data without labeled examples",
+      "position": {
+        "x": 300,
+        "y": 350
+      }
+    },
+    {
+      "id": "reinforcement-learning",
+      "name": "Reinforcement Learning",
+      "description": "Learning approach where agents learn optimal actions through trial and error with rewards and penalties",
+      "position": {
+        "x": 500,
+        "y": 300
+      }
+    },
+    {
+      "id": "algorithms",
+      "name": "Algorithms",
+      "description": "Step-by-step procedures or formulas for solving computational problems",
+      "position": {
+        "x": 200,
+        "y": 500
+      }
+    },
+    {
+      "id": "data",
+      "name": "Data",
+      "description": "Raw facts, figures, and information that can be processed by computers to extract insights",
+      "position": {
+        "x": 400,
+        "y": 500
+      }
+    },
+    {
+      "id": "artificial-intelligence",
+      "name": "Artificial Intelligence",
+      "description": "The simulation of human intelligence in machines programmed to think and learn",
+      "position": {
+        "x": 300,
+        "y": 50
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "sourceConceptId": "artificial-intelligence",
+      "targetConceptId": "machine-learning",
+      "type": "contains",
+      "directed": true,
+      "weight": 0.9
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "neural-networks",
+      "type": "uses",
+      "directed": true,
+      "weight": 0.8
+    },
+    {
+      "sourceConceptId": "neural-networks",
+      "targetConceptId": "deep-learning",
+      "type": "enables",
+      "directed": true,
+      "weight": 0.95
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "supervised-learning",
+      "type": "contains",
+      "directed": true,
+      "weight": 0.7
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "unsupervised-learning",
+      "type": "contains",
+      "directed": true,
+      "weight": 0.7
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "reinforcement-learning",
+      "type": "contains",
+      "directed": true,
+      "weight": 0.6
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "algorithms",
+      "type": "requires",
+      "directed": true,
+      "weight": 0.85
+    },
+    {
+      "sourceConceptId": "machine-learning",
+      "targetConceptId": "data",
+      "type": "requires",
+      "directed": true,
+      "weight": 0.95
+    },
+    {
+      "sourceConceptId": "algorithms",
+      "targetConceptId": "data",
+      "type": "processes",
+      "directed": true,
+      "weight": 0.8
+    },
+    {
+      "sourceConceptId": "deep-learning",
+      "targetConceptId": "data",
+      "type": "requires",
+      "directed": true,
+      "weight": 0.9
+    }
+  ],
+  "metadata": {
+    "title": "AI and Machine Learning Concepts",
+    "description": "A mental model showing relationships between key concepts in artificial intelligence and machine learning",
+    "created": "2025-11-24T22:52:00Z",
+    "lastModified": "2025-11-24T22:52:00Z",
+    "version": "1.0"
+  }
+}

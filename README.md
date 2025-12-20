@@ -1,26 +1,53 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/dL5Ec4iv)
-[![Work in MakeCode](https://classroom.github.com/assets/work-in-make-code-8824cc13a1a3f34ffcd245c82f0ae96fdae6b7d554b6539aec3a03a70825519c.svg)](https://classroom.github.com/online_ide?assignment_repo_id=22091199&assignment_repo_type=AssignmentRepo)
-# OOP Assignment 3 — C++ (CMake + GoogleTest)
+# Assignment2 - Mental Model Visualization
 
-## Repository Structure
+AI powered mental model visualization with graph based link prediction using Qt6 and igraph.
+Deliverable 2 Video Demo Link (consists of design breakdown and actual demo): https://youtu.be/uelY68fv51A
+## Project Structure
 
-- `code/` – C++ source code and tests
-- `report/` – Project report, UML diagrams, and any design files
-- `README.md` – This file
+```
+├── code/           # Source code
+│   ├── core/       # Core logic (models, AI, persistence)
+│   ├── ui/         # User interface components
+│   ├── tests/      # Test files
+│   └── main.cpp    # Application entry point
+├── docs/           # Documentation
+└── README.md       # This file
+```
 
-## Build & Test Instructions
-
-To compile and test locally (assuming you're using CMake and GoogleTest):
+## Quick Start
 
 ```bash
-# Navigate into a new build folder
+# Install dependencies (macOS)
+brew install qt6 igraph cmake
+
+# Build and run
+cd code
 mkdir build && cd build
+cmake .. && make
+./bin/assignment2
+```
 
-# Generate build files
-cmake ../code -DCMAKE_BUILD_TYPE=Release
+See [docs/INSTALL.md](docs/INSTALL.md) for the installation instructions
 
-# Build the project
-cmake --build .
+## Features
 
-# Run tests (if using GoogleTest)
-ctest --output-on-failure
+- **Interactive Graph Visualization**: Drag and drop mental model editor
+- **AI Link Prediction**: Three igraph-powered algorithms:
+  - Common Neighbors
+  - Jaccard Coefficient  
+  - Preferential Attachment
+- **AI Assistant**: Added cohere to provide concept descriptions, suggestions, and relationship context
+- **JSON Persistence**: Save and load mental models
+- **Clean Architecture**: Modular design w/ separation of concerns
+
+## Documentation
+
+- [Installation Guide](docs/INSTALL.md) - Setup instructions for different platforms
+
+## Development
+
+Built with:
+- **Qt6** for cross-platform GUI
+- **igraph** for graph algorithms
+- **C++17** with modern practices
+- **CMake** for build system
