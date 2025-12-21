@@ -1,8 +1,10 @@
 #include "Commands.h"
+#include "../model/MentalModel.h"
+#include "../model/Concept.h"
+#include "../model/Relationship.h"
+#include <memory>
 
 namespace qlink {
-
-// Placeholder implementations - TODO: Implement in next deliverable
 
 // AddConceptCommand
 AddConceptCommand::AddConceptCommand(MentalModel* model, const std::string& name, const std::string& description)
@@ -10,11 +12,16 @@ AddConceptCommand::AddConceptCommand(MentalModel* model, const std::string& name
 }
 
 void AddConceptCommand::execute() {
-    // TODO: Implement add concept command
+    auto concept = std::make_unique<Concept>(conceptName, conceptDescription);
+    addedConceptId = concept->getId();
+    model->addConcept(std::move(concept));
 }
 
 void AddConceptCommand::undo() {
-    // TODO: Implement add concept undo
+    if (!addedConceptId.empty()) {
+        model->removeConcept(addedConceptId);
+        addedConceptId.clear();
+    }
 }
 
 std::string AddConceptCommand::getDescription() const {
@@ -27,11 +34,34 @@ RemoveConceptCommand::RemoveConceptCommand(MentalModel* model, const std::string
 }
 
 void RemoveConceptCommand::execute() {
-    // TODO: Implement remove concept command
+    // Save concept and its relationships for undo
+    const Concept* concept = model->getConcept(conceptId);
+    if (concept) {
+        removedConcept = std::make_unique<Concept>(*concept);
+        
+        // Save all relationships connected to this concept
+        auto relationships = model->getConceptRelationships(conceptId);
+        for (const auto& rel : relationships) {
+            removedRelationships.push_back(std::make_unique<Relationship>(*rel));
+        }
+        
+        model->removeConcept(conceptId);
+    }
 }
 
 void RemoveConceptCommand::undo() {
-    // TODO: Implement remove concept undo
+    if (removedConcept) {
+        // Restore the concept
+        model->addConcept(std::make_unique<Concept>(*removedConcept));
+        
+        // Restore all relationships
+        for (auto& rel : removedRelationships) {
+            model->addRelationship(std::make_unique<Relationship>(*rel));
+        }
+        
+        removedConcept.reset();
+        removedRelationships.clear();
+    }
 }
 
 std::string RemoveConceptCommand::getDescription() const {
@@ -45,11 +75,16 @@ CreateRelationshipCommand::CreateRelationshipCommand(MentalModel* model, const s
 }
 
 void CreateRelationshipCommand::execute() {
-    // TODO: Implement create relationship command
+    auto relationship = std::make_unique<Relationship>(sourceConceptId, targetConceptId, relationshipType, isDirected, 1.0);
+    addedRelationshipId = relationship->getId();
+    model->addRelationship(std::move(relationship));
 }
 
 void CreateRelationshipCommand::undo() {
-    // TODO: Implement create relationship undo
+    if (!addedRelationshipId.empty()) {
+        model->removeRelationship(addedRelationshipId);
+        addedRelationshipId.clear();
+    }
 }
 
 std::string CreateRelationshipCommand::getDescription() const {
@@ -62,11 +97,18 @@ DeleteRelationshipCommand::DeleteRelationshipCommand(MentalModel* model, const s
 }
 
 void DeleteRelationshipCommand::execute() {
-    // TODO: Implement delete relationship command
+    const Relationship* rel = model->getRelationship(relationshipId);
+    if (rel) {
+        removedRelationship = std::make_unique<Relationship>(*rel);
+        model->removeRelationship(relationshipId);
+    }
 }
 
 void DeleteRelationshipCommand::undo() {
-    // TODO: Implement delete relationship undo
+    if (removedRelationship) {
+        model->addRelationship(std::make_unique<Relationship>(*removedRelationship));
+        removedRelationship.reset();
+    }
 }
 
 std::string DeleteRelationshipCommand::getDescription() const {
