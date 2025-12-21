@@ -27,7 +27,8 @@ namespace qlink {
 
 GraphWidget::GraphWidget(QWidget *parent)
     : QGraphicsView(parent), model(nullptr), zoomFactor(1.0), 
-      selectedConcept(nullptr), isDragging(false) {
+      selectedConcept(nullptr), isDragging(false),
+      totalMovement(0.0), stableIterations(0) {
     setupView();
     setupScene();
     startLayoutTimer();
@@ -236,7 +237,10 @@ void GraphWidget::updateLayout() {
         }
     }
     
-    // Apply forces to repel the concepts
+    // Track total movement to detect stability
+    totalMovement = 0.0;
+    
+    // Apply forces to move the concepts
     for (auto it = conceptItems.begin(); it != conceptItems.end(); ++it) {
         if (it.value()->isSelected()) continue; // Don't move selected items
         
@@ -248,7 +252,30 @@ void GraphWidget::updateLayout() {
         newPos.setX(std::max(-800.0, std::min(800.0, newPos.x())));
         newPos.setY(std::max(-600.0, std::min(600.0, newPos.y())));
         
+        // Calculate movement distance
+        QPointF movement = newPos - currentPos;
+        totalMovement += std::sqrt(movement.x() * movement.x() + movement.y() * movement.y());
+        
         it.value()->setPos(newPos);
+    }
+    
+    // Check if layout is stable
+    if (totalMovement < STABILITY_THRESHOLD) {
+        stableIterations++;
+        
+        // If stable for long enough, slow down or pause updates
+        if (stableIterations >= STABLE_COUNT_REQUIRED) {
+            // Slow down timer to reduce CPU usage when layout is stable
+            if (layoutTimer->interval() == 50) {
+                layoutTimer->setInterval(500); // Update only twice per second when stable
+            }
+        }
+    } else {
+        stableIterations = 0;
+        // If movement detected, resume fast updates
+        if (layoutTimer->interval() != 50) {
+            layoutTimer->setInterval(50);
+        }
     }
     
     // Update relationship items
@@ -368,6 +395,11 @@ void GraphWidget::onConceptAdded(const QString& conceptId) {
     auto concept = model->getConcept(conceptId.toStdString());
     if (concept) {
         createConceptItem(concept);
+        // Reset stability tracking to restart layout animation
+        stableIterations = 0;
+        if (layoutTimer->interval() != 50) {
+            layoutTimer->setInterval(50);
+        }
     }
 }
 
@@ -376,6 +408,11 @@ void GraphWidget::onConceptRemoved(const QString& conceptId) {
     if (item) {
         scene->removeItem(item);
         delete item;
+        // Reset stability tracking
+        stableIterations = 0;
+        if (layoutTimer->interval() != 50) {
+            layoutTimer->setInterval(50);
+        }
     }
 }
 
@@ -384,6 +421,11 @@ void GraphWidget::onRelationshipAdded(const QString& relationshipId) {
     auto relationship = model->getRelationship(relationshipId.toStdString());
     if (relationship) {
         createRelationshipItem(relationship);
+        // Reset stability tracking
+        stableIterations = 0;
+        if (layoutTimer->interval() != 50) {
+            layoutTimer->setInterval(50);
+        }
     }
 }
 
@@ -392,6 +434,11 @@ void GraphWidget::onRelationshipRemoved(const QString& relationshipId) {
     if (item) {
         scene->removeItem(item);
         delete item;
+        // Reset stability tracking
+        stableIterations = 0;
+        if (layoutTimer->interval() != 50) {
+            layoutTimer->setInterval(50);
+        }
     }
 }
 

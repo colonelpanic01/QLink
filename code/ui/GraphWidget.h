@@ -79,6 +79,12 @@ private:
     ConceptGraphicsItem* selectedConcept;
     bool isDragging;
     QPoint dragStartPos;
+    
+    // Layout stability tracking
+    double totalMovement;
+    int stableIterations;
+    const double STABILITY_THRESHOLD = 0.5;  // Threshold for considering layout stable
+    const int STABLE_COUNT_REQUIRED = 10;    // Number of stable iterations before slowing down
 };
 
 /**
