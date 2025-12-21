@@ -181,9 +181,20 @@ void SuggestionPanel::addSuggestion(const LinkSuggestion& suggestion) {
     suggestions.append(suggestion);
     
     auto item = new QTreeWidgetItem(suggestionsTree);
-    item->setText(0, QString::fromStdString(suggestion.sourceConceptId));
-    item->setText(1, QString::fromStdString(suggestion.targetConceptId));
-    item->setText(2, QString::fromStdString(suggestion.suggestedType));
+    
+    // Get concept names instead of IDs (Bug fix #1)
+    std::string sourceName = suggestion.sourceConceptId;
+    std::string targetName = suggestion.targetConceptId;
+    if (model) {
+        auto sourceConcept = model->getConcept(suggestion.sourceConceptId);
+        auto targetConcept = model->getConcept(suggestion.targetConceptId);
+        if (sourceConcept) sourceName = sourceConcept->getName();
+        if (targetConcept) targetName = targetConcept->getName();
+    }
+    
+    item->setText(0, QString::fromStdString(sourceName));
+    item->setText(1, QString::fromStdString(targetName));
+    item->setText(2, QString::fromStdString(suggestion.algorithmName));  // Bug fix #2: Use algorithm name instead of suggestedType
     item->setText(3, QString::number(suggestion.confidence, 'f', 3));
     
     // Set confidence-based color coding
@@ -359,7 +370,8 @@ void SuggestionPanel::generateCombinedSuggestions(double minConfidence) {
                     suggestions[0].targetConceptId,
                     "predicted_relationship",
                     avgConfidence,
-                    combinedExplanation
+                    combinedExplanation,
+                    "Combined Algorithms"  // Algorithm name for combined suggestions
                 );
                 
                 addSuggestion(combined);
@@ -440,6 +452,16 @@ void SuggestionPanel::onSelectionChanged() {
 
     const auto& suggestion = suggestions[index];
     
+    // Get concept names for details display
+    std::string sourceName = suggestion.sourceConceptId;
+    std::string targetName = suggestion.targetConceptId;
+    if (model) {
+        auto sourceConcept = model->getConcept(suggestion.sourceConceptId);
+        auto targetConcept = model->getConcept(suggestion.targetConceptId);
+        if (sourceConcept) sourceName = sourceConcept->getName();
+        if (targetConcept) targetName = targetConcept->getName();
+    }
+    
     // Update details text
     QString details = QString(
         "Link Suggestion Details:\n\n"
@@ -448,9 +470,9 @@ void SuggestionPanel::onSelectionChanged() {
         "Algorithm Used: %3\n"
         "Confidence: %4\n\n"
         "Explanation:\n%5"
-    ).arg(QString::fromStdString(suggestion.sourceConceptId))
-     .arg(QString::fromStdString(suggestion.targetConceptId))
-     .arg(QString::fromStdString(suggestion.suggestedType))
+    ).arg(QString::fromStdString(sourceName))
+     .arg(QString::fromStdString(targetName))
+     .arg(QString::fromStdString(suggestion.algorithmName))
      .arg(suggestion.confidence, 0, 'f', 3)
      .arg(QString::fromStdString(suggestion.explanation));
     
