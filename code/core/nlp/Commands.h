@@ -2,15 +2,18 @@
 
 #include "ICommand.h"
 #include <string>
+#include <vector>
+#include <memory>
 
 namespace qlink {
 
 // Forward declarations
 class MentalModel;
+class Concept;
+class Relationship;
 
 /**
  * Command to add a concept to the mental model
- * TODO: Full implementation in next deliverable
  */
 class AddConceptCommand : public ICommand {
 public:
@@ -29,7 +32,6 @@ private:
 
 /**
  * Command to remove a concept from the mental model
- * TODO: Full implementation in next deliverable
  */
 class RemoveConceptCommand : public ICommand {
 public:
@@ -42,11 +44,12 @@ public:
 private:
     MentalModel* model;
     std::string conceptId;
+    std::unique_ptr<Concept> removedConcept; // For undo
+    std::vector<std::unique_ptr<Relationship>> removedRelationships; // For undo
 };
 
 /**
  * Command to create a relationship between concepts
- * TODO: Full implementation in next deliverable
  */
 class CreateRelationshipCommand : public ICommand {
 public:
@@ -68,7 +71,6 @@ private:
 
 /**
  * Command to delete a relationship
- * TODO: Full implementation in next deliverable
  */
 class DeleteRelationshipCommand : public ICommand {
 public:
@@ -81,6 +83,7 @@ public:
 private:
     MentalModel* model;
     std::string relationshipId;
+    std::unique_ptr<Relationship> removedRelationship; // For undo
 };
 
 } // namespace qlink
