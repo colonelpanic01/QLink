@@ -7,6 +7,10 @@
 class QAction;
 class QLabel;
 class QProgressBar;
+class QTextEdit;
+class QLineEdit;
+class QPushButton;
+class QListWidget;
 
 
 namespace qlink {
@@ -46,13 +50,18 @@ private slots:
     void showHelp();
     void showAbout();
 
+    // Natural language command handling
+    void executeNaturalLanguageCommand();
+    void clearCommandHistory();
+
     // Model change handling
     void onModelChanged(const ModelChangeEvent& event);
     void updateStatusBar();
 
 private:
     void setupUI();
-
+    void setupNaturalLanguagePanel();
+    void applyModernStyling();
     void setupMenus();
     void setupToolbar();
     void setupStatusBar();
@@ -60,11 +69,18 @@ private:
     void updateWindowTitle();
     void setModelModified(bool modified = true);
     void connectModelSignals();
+    void addCommandToHistory(const QString& command, bool success, const QString& message);
 
     // Core components
     std::unique_ptr<MentalModel> mentalModel;
     GraphWidget* graphWidget;
     SuggestionPanel* suggestionPanel;
+    
+    // Natural language components
+    QTextEdit* commandInput;
+    QPushButton* executeButton;
+    QPushButton* clearHistoryButton;
+    QListWidget* commandHistory;
 
     // File management
     QString currentFilePath;

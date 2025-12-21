@@ -32,9 +32,25 @@ SuggestionPanel::~SuggestionPanel() = default;
 void SuggestionPanel::setupUI() {
     auto mainLayout = new QVBoxLayout(this);
     
+    // Apply styling to the entire panel
+    setStyleSheet(
+        "QWidget { color: #2c3e50; }"
+        "QLabel { color: #2c3e50; }"
+        "QGroupBox { color: #2c3e50; font-weight: bold; }"
+        "QGroupBox::title { color: #34495e; }"
+        "QTreeWidget { color: #2c3e50; background-color: white; }"
+        "QTreeWidget::item { color: #2c3e50; }"
+        "QTreeWidget::item:selected { color: white; background-color: #3498db; }"
+        "QTextEdit { color: #2c3e50; background-color: white; }"
+        "QLineEdit { color: #2c3e50; background-color: white; }"
+        "QComboBox { color: #2c3e50; background-color: white; }"
+        "QComboBox QAbstractItemView { color: #2c3e50; background-color: white; }"
+        "QPushButton { color: #2c3e50; }"
+    );
+    
     // Title
     auto titleLabel = new QLabel("AI Suggestions");
-    titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;");
+    titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px; color: #2c3e50;");
     mainLayout->addWidget(titleLabel);
     
     // Controls section
@@ -76,7 +92,7 @@ void SuggestionPanel::setupControlsSection(QVBoxLayout* mainLayout) {
     
     // Generate button
     generateButton = new QPushButton("Generate Suggestions");
-    generateButton->setStyleSheet("QPushButton { font-weight: bold; padding: 8px; }");
+    generateButton->setStyleSheet("QPushButton { font-weight: bold; padding: 8px; color: white; background-color: #3498db; border: none; border-radius: 4px; } QPushButton:hover { background-color: #2980b9; }");
     controlsLayout->addWidget(generateButton);
     
     // Progress bar

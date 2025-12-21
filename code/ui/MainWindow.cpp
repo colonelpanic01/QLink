@@ -2,6 +2,7 @@
 #include "GraphWidget.h"
 #include "SuggestionPanel.h"
 #include "../core/persistence/ModelManager.h"
+#include "../core/nlp/CommandFactory.h"
 #include <QDebug>
 #include <QApplication>
 #include <QMenuBar>
@@ -16,20 +17,28 @@
 #include <QAction>
 #include <QKeySequence>
 #include <QTextEdit>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QListWidget>
 #include <QDockWidget>
 #include <QProgressBar>
 #include <QTimer>
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QInputDialog>
+#include <QDateTime>
 
 namespace qlink {
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), mentalModel(std::make_unique<MentalModel>("New Model")), 
-      graphWidget(nullptr), suggestionPanel(nullptr), modelModified(false) {
+      graphWidget(nullptr), suggestionPanel(nullptr), 
+      commandInput(nullptr), executeButton(nullptr), clearHistoryButton(nullptr), commandHistory(nullptr),
+      modelModified(false) {
     try {
         setupUI();
+        setupNaturalLanguagePanel();
+        applyModernStyling();
         setupMenus();
         setupToolbar();
         setupStatusBar();
@@ -47,10 +56,17 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow() = default;
 
 void MainWindow::setupUI() {
+    // Set window properties
+    setMinimumSize(1200, 800);
+    resize(1400, 900);
+    
     // Create central widget with splitter
     auto centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     auto mainLayout = new QHBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+    
     auto splitter = new QSplitter(Qt::Horizontal, this);
     mainLayout->addWidget(splitter);
 
@@ -60,7 +76,7 @@ void MainWindow::setupUI() {
 
     // Create suggestion panel
     suggestionPanel = new SuggestionPanel(this);
-    suggestionPanel->setMinimumWidth(250);
+    suggestionPanel->setMinimumWidth(280);
 
     // Add widgets to splitter
     splitter->addWidget(graphWidget);
@@ -68,11 +84,253 @@ void MainWindow::setupUI() {
 
     // Set initial sizes (graph takes 70%, suggestions take 30%)
     splitter->setSizes({700, 300});
-
-
+    
+    // Make splitter handle more visible
+    splitter->setHandleWidth(2);
 }
 
+void MainWindow::setupNaturalLanguagePanel() {
+    // Create dock widget for natural language commands
+    auto nlDock = new QDockWidget("Natural Language Commands", this);
+    nlDock->setAllowedAreas(Qt::BottomDockWidgetArea | Qt::RightDockWidgetArea);
+    
+    auto nlWidget = new QWidget(nlDock);
+    nlWidget->setMaximumHeight(300); // Limit height when docked
+    auto nlLayout = new QVBoxLayout(nlWidget);
+    nlLayout->setSpacing(8);
+    nlLayout->setContentsMargins(10, 10, 10, 10);
+    
+    // Title and help text
+    auto titleLabel = new QLabel("<b>Natural Language Commands</b>");
+    titleLabel->setStyleSheet("font-size: 14px; color: #2c3e50;");
+    nlLayout->addWidget(titleLabel);
+    
+    auto helpText = new QLabel("Enter commands like: 'add concept AI', 'connect AI to ML', 'remove concept X'");
+    helpText->setWordWrap(true);
+    helpText->setStyleSheet("color: #7f8c8d; font-size: 11px;");
+    nlLayout->addWidget(helpText);
+    
+    // Command input area
+    auto inputLabel = new QLabel("Command:");
+    inputLabel->setStyleSheet("font-weight: bold; color: #34495e;");
+    nlLayout->addWidget(inputLabel);
+    
+    commandInput = new QTextEdit();
+    commandInput->setPlaceholderText("Type your natural language command here...");
+    commandInput->setMaximumHeight(60);
+    commandInput->setMinimumHeight(40);
+    commandInput->setStyleSheet(
+        "QTextEdit {"
+        "   border: 2px solid #bdc3c7;"
+        "   border-radius: 6px;"
+        "   padding: 8px;"
+        "   font-size: 13px;"
+        "   background-color: white;"
+        "}"
+        "QTextEdit:focus {"
+        "   border-color: #3498db;"
+        "}"
+    );
+    nlLayout->addWidget(commandInput);
+    
+    // Buttons
+    auto buttonLayout = new QHBoxLayout();
+    buttonLayout->setSpacing(10);
+    
+    executeButton = new QPushButton("Execute Command");
+    executeButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #3498db;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 6px;"
+        "   padding: 10px 20px;"
+        "   font-weight: bold;"
+        "   font-size: 13px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #2980b9;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #21618c;"
+        "}"
+    );
+    buttonLayout->addWidget(executeButton);
+    
+    clearHistoryButton = new QPushButton("Clear History");
+    clearHistoryButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #95a5a6;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 6px;"
+        "   padding: 10px 20px;"
+        "   font-size: 13px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #7f8c8d;"
+        "}"
+    );
+    buttonLayout->addWidget(clearHistoryButton);
+    buttonLayout->addStretch();
+    
+    nlLayout->addLayout(buttonLayout);
+    
+    // Command history
+    auto historyLabel = new QLabel("Command History:");
+    historyLabel->setStyleSheet("font-weight: bold; color: #34495e; margin-top: 10px;");
+    nlLayout->addWidget(historyLabel);
+    
+    commandHistory = new QListWidget();
+    commandHistory->setMaximumHeight(120); // Limit history height
+    commandHistory->setStyleSheet(
+        "QListWidget {"
+        "   border: 2px solid #bdc3c7;"
+        "   border-radius: 6px;"
+        "   background-color: #ecf0f1;"
+        "   font-size: 12px;"
+        "}"
+        "QListWidget::item {"
+        "   padding: 8px;"
+        "   border-bottom: 1px solid #d5dbdb;"
+        "}"
+        "QListWidget::item:selected {"
+        "   background-color: #3498db;"
+        "   color: white;"
+        "}"
+    );
+    nlLayout->addWidget(commandHistory);
+    
+    nlDock->setWidget(nlWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, nlDock);
+    
+    // Connect signals
+    connect(executeButton, &QPushButton::clicked, this, &MainWindow::executeNaturalLanguageCommand);
+    connect(clearHistoryButton, &QPushButton::clicked, this, &MainWindow::clearCommandHistory);
+    connect(commandInput, &QTextEdit::textChanged, [this]() {
+        executeButton->setEnabled(!commandInput->toPlainText().trimmed().isEmpty());
+    });
+    
+    executeButton->setEnabled(false);
+}
 
+void MainWindow::applyModernStyling() {
+    // Modern application-wide stylesheet
+    setStyleSheet(R"(
+        QMainWindow {
+            background-color: #f5f6fa;
+        }
+        
+        QMenuBar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 5px;
+            border: none;
+        }
+        
+        QMenuBar::item {
+            background-color: transparent;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        
+        QMenuBar::item:selected {
+            background-color: #34495e;
+        }
+        
+        QMenu {
+            background-color: white;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            padding: 5px;
+        }
+        
+        QMenu::item {
+            color: #2c3e50;
+            padding: 8px 30px;
+            border-radius: 4px;
+        }
+        
+        QMenu::item:selected {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        QMenu::item:disabled {
+            color: #95a5a6;
+        }
+        
+        QToolBar {
+            background-color: #34495e;
+            border: none;
+            spacing: 5px;
+            padding: 8px;
+        }
+        
+        QToolButton {
+            background-color: transparent;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 2px;
+        }
+        
+        QToolButton:hover {
+            background-color: #4a5f7f;
+        }
+        
+        QToolButton:pressed {
+            background-color: #2c3e50;
+        }
+        
+        QStatusBar {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border-top: 1px solid #bdc3c7;
+        }
+        
+        QDockWidget {
+            titlebar-close-icon: url(close.png);
+            titlebar-normal-icon: url(undock.png);
+        }
+        
+        QDockWidget::title {
+            background-color: #34495e;
+            color: white;
+            padding: 10px;
+            border-radius: 4px 4px 0 0;
+            font-weight: bold;
+        }
+        
+        QDockWidget::close-button, QDockWidget::float-button {
+            background-color: #4a5f7f;
+            border-radius: 3px;
+            padding: 2px;
+        }
+        
+        QDockWidget::close-button:hover, QDockWidget::float-button:hover {
+            background-color: #5a6f8f;
+        }
+        
+        QSplitter::handle {
+            background-color: #bdc3c7;
+        }
+        
+        QSplitter::handle:horizontal {
+            width: 2px;
+        }
+        
+        QSplitter::handle:vertical {
+            height: 2px;
+        }
+        
+        QSplitter::handle:hover {
+            background-color: #3498db;
+        }
+    )");
+}
 
 void MainWindow::setupMenus() {
     // File Menu
@@ -591,14 +849,21 @@ void MainWindow::showHelp() {
 
 void MainWindow::showAbout() {
     QString aboutText = 
-        "Assignment2 Mental Model Simulator\n"
-        "Version 1.0.0\n\n"
-        "A tool for creating and analyzing mental models\n"
-        "with AI-powered link prediction and natural\n"
-        "language processing capabilities.\n\n"
-        "Built with Qt 6 and modern C++";
+        "<h2>QLink v3/h2>"
+        "<p><b>Mental Model and Knowledge Management Visualizer!</b></p>"
+        "<p>QLink helps you organize, visualize, and understand complex "
+        "relationships between concepts via a graph based representations.</p>"
+        "<h3>Features:</h3>"
+        "<ul>"
+        "<li>Interactive graph visualization</li>"
+        "<li>AI-powered relationship suggestions</li>"
+        "<li>Natural language command interface</li>"
+        "<li>Import/Export functionality</li>"
+        "<li>Model validation</li>"
+        "</ul>"
+        "<p><i>Developed as part of CS 3307 - Object-Oriented Design & Analysis</i></p>";
 
-    QMessageBox::about(this, "About Assignment2", aboutText);
+    QMessageBox::about(this, "About QLink", aboutText);
 }
 
 void MainWindow::onModelChanged(const ModelChangeEvent& event) {
@@ -606,11 +871,96 @@ void MainWindow::onModelChanged(const ModelChangeEvent& event) {
     setModelModified(true);
 }
 
+void MainWindow::executeNaturalLanguageCommand() {
+    QString commandText = commandInput->toPlainText().trimmed();
+    if (commandText.isEmpty()) {
+        return;
+    }
+    
+    try {
+        // Check if command is valid
+        if (!CommandFactory::isValidCommand(commandText.toStdString())) {
+            addCommandToHistory(commandText, false, "Invalid command format");
+            QMessageBox::warning(this, "Invalid Command", 
+                "The command could not be understood. Please check your syntax.\n\n"
+                "Examples:\n"
+                "• add concept AI with description 'Artificial Intelligence'\n"
+                "• connect AI to ML with type 'related'\n"
+                "• remove concept AI\n"
+                "• disconnect AI from ML");
+            return;
+        }
+        
+        // Create command
+        auto command = CommandFactory::createCommand(commandText.toStdString(), mentalModel.get());
+        if (!command) {
+            addCommandToHistory(commandText, false, "Failed to create command");
+            QMessageBox::warning(this, "Command Error", 
+                "Failed to create command. Please check your syntax.");
+            return;
+        }
+        
+        // Execute command
+        command->execute();
+        
+        // Success feedback
+        addCommandToHistory(commandText, true, "Successfully executed");
+        statusBar()->showMessage("Command executed successfully", 3000);
+        
+        // Clear input
+        commandInput->clear();
+        
+        // Update graph - the model signals will trigger the update
+        setModelModified(true);
+        
+    } catch (const std::exception& e) {
+        addCommandToHistory(commandText, false, QString("Error: %1").arg(e.what()));
+        QMessageBox::critical(this, "Execution Error", 
+            QString("Failed to execute command:\n%1").arg(e.what()));
+    }
+}
+
+void MainWindow::clearCommandHistory() {
+    if (commandHistory->count() > 0) {
+        auto reply = QMessageBox::question(this, "Clear History",
+            "Are you sure you want to clear the command history?",
+            QMessageBox::Yes | QMessageBox::No);
+            
+        if (reply == QMessageBox::Yes) {
+            commandHistory->clear();
+            statusBar()->showMessage("Command history cleared", 2000);
+        }
+    }
+}
+
+void MainWindow::addCommandToHistory(const QString& command, bool success, const QString& message) {
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
+    QString status = success ? "✓" : "✗";
+    QString statusColor = success ? "#27ae60" : "#e74c3c";
+    
+    QString historyEntry = QString(
+        "<span style='color: %1; font-weight: bold;'>%2</span> "
+        "<span style='color: #7f8c8d;'>[%3]</span> "
+        "<span style='color: #2c3e50;'>%4</span>"
+        "<br><span style='color: #95a5a6; font-size: 10px;'>%5</span>"
+    ).arg(statusColor, status, timestamp, command, message);
+    
+    auto item = new QListWidgetItem();
+    item->setText(historyEntry);
+    item->setData(Qt::UserRole, command); // Store original command
+    commandHistory->insertItem(0, item); // Add to top
+    
+    // Limit history to 50 items
+    while (commandHistory->count() > 50) {
+        delete commandHistory->takeItem(commandHistory->count() - 1);
+    }
+}
+
 void MainWindow::updateWindowTitle() {
-    QString title = "Assignment2 - " + QString::fromStdString(mentalModel->getModelName());
+    QString title = "QLink - " + QString::fromStdString(mentalModel->getModelName());
     if (!currentFilePath.isEmpty()) {
         QFileInfo fileInfo(currentFilePath);
-        title = "Assignment2 - " + fileInfo.baseName();
+        title = "QLink - " + fileInfo.baseName();
     }
     
     // Add asterisk for unsaved changes
