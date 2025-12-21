@@ -94,7 +94,7 @@ std::vector<LinkSuggestion> IGraphLinkPredictor::convertSimilarityToSuggestions(
         
         std::string explanation = algorithmName + " score: " + std::to_string(rawScore) + 
                                 " (normalized: " + std::to_string(confidence) + ")";
-        suggestions.emplace_back(sourceId, targetId, "relates_to", confidence, explanation);
+        suggestions.emplace_back(sourceId, targetId, "relates_to", confidence, explanation, algorithmName);
     }
     
     return suggestions;
