@@ -26,14 +26,17 @@ struct LinkSuggestion {
     std::string sourceConceptId;
     std::string targetConceptId;
     std::string suggestedType;
+    std::string algorithmName;  // Name of the algorithm that generated this suggestion
     double confidence;  // 0.0 to 1.0
     std::string explanation;
     
     LinkSuggestion(const std::string& source, const std::string& target, 
                    const std::string& type, double confidence, 
-                   const std::string& explanation = "")
+                   const std::string& explanation = "",
+                   const std::string& algorithm = "Unknown")
         : sourceConceptId(source), targetConceptId(target), 
-          suggestedType(type), confidence(confidence), explanation(explanation) {}
+          suggestedType(type), algorithmName(algorithm),
+          confidence(confidence), explanation(explanation) {}
 };
 
 /**
