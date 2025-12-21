@@ -95,10 +95,10 @@ void MainWindow::setupNaturalLanguagePanel() {
     nlDock->setAllowedAreas(Qt::BottomDockWidgetArea | Qt::RightDockWidgetArea);
     
     auto nlWidget = new QWidget(nlDock);
-    nlWidget->setMaximumHeight(300); // Limit height when docked
+    nlWidget->setMaximumHeight(250); // Further reduced from 300px
     auto nlLayout = new QVBoxLayout(nlWidget);
-    nlLayout->setSpacing(8);
-    nlLayout->setContentsMargins(10, 10, 10, 10);
+    nlLayout->setSpacing(6);
+    nlLayout->setContentsMargins(8, 8, 8, 8);
     
     // Title and help text
     auto titleLabel = new QLabel("<b>Natural Language Commands</b>");
@@ -126,6 +126,7 @@ void MainWindow::setupNaturalLanguagePanel() {
         "   padding: 8px;"
         "   font-size: 13px;"
         "   background-color: white;"
+        "   color: #2c3e50;"
         "}"
         "QTextEdit:focus {"
         "   border-color: #3498db;"
@@ -182,17 +183,19 @@ void MainWindow::setupNaturalLanguagePanel() {
     nlLayout->addWidget(historyLabel);
     
     commandHistory = new QListWidget();
-    commandHistory->setMaximumHeight(120); // Limit history height
+    commandHistory->setMaximumHeight(100); // Further reduced from 120px
     commandHistory->setStyleSheet(
         "QListWidget {"
         "   border: 2px solid #bdc3c7;"
         "   border-radius: 6px;"
         "   background-color: #ecf0f1;"
         "   font-size: 12px;"
+        "   color: #2c3e50;"
         "}"
         "QListWidget::item {"
-        "   padding: 8px;"
+        "   padding: 6px;"
         "   border-bottom: 1px solid #d5dbdb;"
+        "   color: #2c3e50;"
         "}"
         "QListWidget::item:selected {"
         "   background-color: #3498db;"
@@ -936,18 +939,21 @@ void MainWindow::clearCommandHistory() {
 void MainWindow::addCommandToHistory(const QString& command, bool success, const QString& message) {
     QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
     QString status = success ? "✓" : "✗";
-    QString statusColor = success ? "#27ae60" : "#e74c3c";
     
-    QString historyEntry = QString(
-        "<span style='color: %1; font-weight: bold;'>%2</span> "
-        "<span style='color: #7f8c8d;'>[%3]</span> "
-        "<span style='color: #2c3e50;'>%4</span>"
-        "<br><span style='color: #95a5a6; font-size: 10px;'>%5</span>"
-    ).arg(statusColor, status, timestamp, command, message);
+    // Simple text format without HTML
+    QString historyEntry = QString("%1 [%2] %3 - %4")
+        .arg(status, timestamp, command, message);
     
-    auto item = new QListWidgetItem();
-    item->setText(historyEntry);
+    auto item = new QListWidgetItem(historyEntry);
     item->setData(Qt::UserRole, command); // Store original command
+    
+    // Color code by success/failure
+    if (success) {
+        item->setForeground(QColor("#27ae60")); // Green for success
+    } else {
+        item->setForeground(QColor("#e74c3c")); // Red for failure
+    }
+    
     commandHistory->insertItem(0, item); // Add to top
     
     // Limit history to 50 items
