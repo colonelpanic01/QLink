@@ -11,7 +11,6 @@ class MentalModel;
 
 /**
  * Factory class for creating commands from natural language input
- * TODO: Full implementation planned for next deliverable
  */
 class CommandFactory {
 public:
