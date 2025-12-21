@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Assignment2 VERSION 1.0.0 LANGUAGES CXX)
+project(Qlink VERSION 3.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,29 +37,29 @@ file(GLOB_RECURSE UI_SOURCES "ui/*.cpp")
 file(GLOB_RECURSE UI_HEADERS "ui/*.h")
 
 # Core library
-add_library(Assignment2Core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
-target_link_libraries(Assignment2Core 
+add_library(QlinkCore STATIC ${CORE_SOURCES} ${CORE_HEADERS})
+target_link_libraries(QlinkCore 
     Qt6::Core 
     Qt6::Network 
     ${IGRAPH_LIBRARIES}
 )
-target_include_directories(Assignment2Core 
+target_include_directories(QlinkCore 
     PUBLIC ${CMAKE_SOURCE_DIR}
     PRIVATE ${IGRAPH_INCLUDE_DIRS}
 )
 if(IGRAPH_LIBRARY_DIRS)
-    target_link_directories(Assignment2Core PRIVATE ${IGRAPH_LIBRARY_DIRS})
+    target_link_directories(QlinkCore PRIVATE ${IGRAPH_LIBRARY_DIRS})
 endif()
 
 # Main executable
-add_executable(assignment2 main.cpp ${UI_SOURCES} ${UI_HEADERS})
-target_link_libraries(assignment2 
-    Assignment2Core
+add_executable(Qlink main.cpp ${UI_SOURCES} ${UI_HEADERS})
+target_link_libraries(Qlink 
+    QlinkCore
     Qt6::Widgets
     ${IGRAPH_LIBRARIES}
 )
 if(IGRAPH_LIBRARY_DIRS)
-    target_link_directories(assignment2 PRIVATE ${IGRAPH_LIBRARY_DIRS})
+    target_link_directories(Qlink PRIVATE ${IGRAPH_LIBRARY_DIRS})
 endif()
 
 # Enable testing
@@ -80,9 +80,9 @@ FetchContent_MakeAvailable(googletest)
 add_subdirectory(tests)
 
 # Output directories
-set_target_properties(assignment2 PROPERTIES
+set_target_properties(Qlink PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
-set_target_properties(Assignment2Core PROPERTIES
+set_target_properties(QlinkCore PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )

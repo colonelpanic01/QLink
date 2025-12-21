@@ -15,7 +15,7 @@ add_executable(qlink_tests ${TEST_SOURCES})
 # Link against GoogleTest and our core library
 target_link_libraries(qlink_tests
     PRIVATE
-    Assignment2Core
+    QlinkCore
     gtest
     gtest_main
     Qt6::Core
