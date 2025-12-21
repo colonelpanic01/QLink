@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "../../core/model/MentalModel.h"
 #include "../../core/model/Concept.h"
 #include "../../core/model/Relationship.h"
