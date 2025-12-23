@@ -12,6 +12,13 @@ file(GLOB_RECURSE TEST_SOURCES
 # Create test executable
 add_executable(qlink_tests ${TEST_SOURCES})
 
+# Workaround for deprecated AGL framework on newer macOS
+if(APPLE)
+    set_target_properties(qlink_tests PROPERTIES
+        LINK_FLAGS "-Wl,-undefined,dynamic_lookup"
+    )
+endif()
+
 # Link against GoogleTest and our core library
 target_link_libraries(qlink_tests
     PRIVATE

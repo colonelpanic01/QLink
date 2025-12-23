@@ -53,6 +53,14 @@ endif()
 
 # Main executable
 add_executable(Qlink main.cpp ${UI_SOURCES} ${UI_HEADERS})
+
+# Workaround for deprecated AGL framework on newer macOS
+if(APPLE)
+    set_target_properties(Qlink PROPERTIES
+        LINK_FLAGS "-Wl,-undefined,dynamic_lookup"
+    )
+endif()
+
 target_link_libraries(Qlink 
     QlinkCore
     Qt6::Widgets
