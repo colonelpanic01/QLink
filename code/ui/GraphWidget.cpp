@@ -33,7 +33,6 @@ GraphWidget::GraphWidget(QWidget *parent)
       totalMovement(0.0), stableIterations(0) {
     setupView();
     setupScene();
-    startLayoutTimer();
 }
 
 GraphWidget::~GraphWidget() = default;
@@ -56,11 +55,6 @@ void GraphWidget::setupScene() {
     setScene(scene);
 }
 
-void GraphWidget::startLayoutTimer() {
-    layoutTimer = new QTimer(this);
-    connect(layoutTimer, &QTimer::timeout, this, &GraphWidget::updateLayout);
-    layoutTimer->start(50); // Update layout 20 times per second
-}
 
 void GraphWidget::setModel(MentalModel* newModel) {
     // Only disconnect if we have a model and it's changing
