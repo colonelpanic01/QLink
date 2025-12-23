@@ -47,12 +47,10 @@ private slots:
     void onConceptRemoved(const QString& conceptId);
     void onRelationshipAdded(const QString& relationshipId);
     void onRelationshipRemoved(const QString& relationshipId);
-    void updateLayout();
 
 private:
     void setupView();
     void setupScene();
-    void startLayoutTimer();
     void rebuildGraph();
     void createConceptItem(const Concept* concept);
     void createRelationshipItem(const Relationship* relationship);
@@ -68,7 +66,6 @@ private:
     // Core components
     QGraphicsScene* scene;
     MentalModel* model;
-    QTimer* layoutTimer;
 
     // Visual items
     QMap<std::string, ConceptGraphicsItem*> conceptItems;

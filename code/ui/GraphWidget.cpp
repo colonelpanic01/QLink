@@ -168,118 +168,6 @@ void GraphWidget::initializePositions() {
     }
 }
 
-void GraphWidget::updateLayout() {
-    if (!model || conceptItems.isEmpty()) return;
-    
-    // Improved force-directed layout algorithm with better spacing
-    const double repulsionStrength = 20000.0; // Stronger repulsion to prevent bunching
-    const double attractionStrength = 0.05;   // Weaker attraction to allow more spread
-    const double damping = 0.95;              // Higher damping for stability
-    const double minDistance = 150.0;         // Larger minimum distance between nodes
-    
-    // Calculate forces for each concept
-    QMap<QString, QPointF> forces;
-    
-    // Initialize forces
-    for (auto it = conceptItems.begin(); it != conceptItems.end(); ++it) {
-        forces[QString::fromStdString(it.key())] = QPointF(0, 0);
-    }
-    
-    // Repulsion forces (concepts push each other away)
-    for (auto it1 = conceptItems.begin(); it1 != conceptItems.end(); ++it1) {
-        for (auto it2 = std::next(it1); it2 != conceptItems.end(); ++it2) {
-            QPointF pos1 = it1.value()->pos();
-            QPointF pos2 = it2.value()->pos();
-            QPointF diff = pos1 - pos2;
-            double distance = std::sqrt(diff.x() * diff.x() + diff.y() * diff.y());
-            
-            if (distance < minDistance) distance = minDistance;
-            
-            double force = repulsionStrength / (distance * distance);
-            QPointF forceVector = diff * (force / distance);
-            
-            forces[QString::fromStdString(it1.key())] += forceVector;
-            forces[QString::fromStdString(it2.key())] -= forceVector;
-        }
-    }
-    
-    // Attraction forces (connected concepts pull each other) - with limits to prevent bunching
-    const double idealConnectionDistance = 200.0; // Ideal distance between connected nodes
-    const double maxAttractionDistance = 400.0;   // Don't attract if too far apart
-    
-    for (const auto& relationship : model->getRelationships()) {
-        auto sourceItem = conceptItems.value(relationship->getSourceConceptId());
-        auto targetItem = conceptItems.value(relationship->getTargetConceptId());
-        
-        if (sourceItem && targetItem) {
-            QPointF pos1 = sourceItem->pos();
-            QPointF pos2 = targetItem->pos();
-            QPointF diff = pos2 - pos1;
-            double distance = std::sqrt(diff.x() * diff.x() + diff.y() * diff.y());
-            
-            if (distance > 0 && distance < maxAttractionDistance) {
-                // Use spring-like force that's strongest when distance != ideal
-                double distanceError = distance - idealConnectionDistance;
-                double force = attractionStrength * distanceError * relationship->getWeight();
-                
-                // Cap the force to prevent too strong attraction
-                force = std::max(-2.0, std::min(2.0, force));
-                
-                QPointF forceVector = diff * (force / distance);
-                
-                forces[QString::fromStdString(relationship->getSourceConceptId())] += forceVector;
-                forces[QString::fromStdString(relationship->getTargetConceptId())] -= forceVector;
-            }
-        }
-    }
-    
-    // Track total movement to detect stability
-    totalMovement = 0.0;
-    
-    // Apply forces to move the concepts
-    for (auto it = conceptItems.begin(); it != conceptItems.end(); ++it) {
-        if (it.value()->isSelected()) continue; // Don't move selected items
-        
-        QPointF currentPos = it.value()->pos();
-        QPointF force = forces[QString::fromStdString(it.key())];
-        QPointF newPos = currentPos + force * damping;
-        
-        // Keep within reasonable bounds
-        newPos.setX(std::max(-800.0, std::min(800.0, newPos.x())));
-        newPos.setY(std::max(-600.0, std::min(600.0, newPos.y())));
-        
-        // Calculate movement distance
-        QPointF movement = newPos - currentPos;
-        totalMovement += std::sqrt(movement.x() * movement.x() + movement.y() * movement.y());
-        
-        it.value()->setPos(newPos);
-    }
-    
-    // Check if layout is stable
-    if (totalMovement < STABILITY_THRESHOLD) {
-        stableIterations++;
-        
-        // If stable for long enough, slow down or pause updates
-        if (stableIterations >= STABLE_COUNT_REQUIRED) {
-            // Slow down timer to reduce CPU usage when layout is stable
-            if (layoutTimer->interval() == 50) {
-                layoutTimer->setInterval(500); // Update only twice per second when stable
-            }
-        }
-    } else {
-        stableIterations = 0;
-        // If movement detected, resume fast updates
-        if (layoutTimer->interval() != 50) {
-            layoutTimer->setInterval(50);
-        }
-    }
-    
-    // Update relationship items
-    for (auto item : relationshipItems) {
-        item->updatePosition();
-    }
-}
-
 // Zoom and view operations
 void GraphWidget::zoomIn() {
     scaleView(1.25);
@@ -391,11 +279,7 @@ void GraphWidget::onConceptAdded(const QString& conceptId) {
     auto concept = model->getConcept(conceptId.toStdString());
     if (concept) {
         createConceptItem(concept);
-        // Reset stability tracking to restart layout animation
         stableIterations = 0;
-        if (layoutTimer->interval() != 50) {
-            layoutTimer->setInterval(50);
-        }
     }
 }
 
@@ -404,11 +288,7 @@ void GraphWidget::onConceptRemoved(const QString& conceptId) {
     if (item) {
         scene->removeItem(item);
         delete item;
-        // Reset stability tracking
         stableIterations = 0;
-        if (layoutTimer->interval() != 50) {
-            layoutTimer->setInterval(50);
-        }
     }
 }
 
@@ -417,11 +297,7 @@ void GraphWidget::onRelationshipAdded(const QString& relationshipId) {
     auto relationship = model->getRelationship(relationshipId.toStdString());
     if (relationship) {
         createRelationshipItem(relationship);
-        // Reset stability tracking
         stableIterations = 0;
-        if (layoutTimer->interval() != 50) {
-            layoutTimer->setInterval(50);
-        }
     }
 }
 
@@ -430,11 +306,7 @@ void GraphWidget::onRelationshipRemoved(const QString& relationshipId) {
     if (item) {
         scene->removeItem(item);
         delete item;
-        // Reset stability tracking
         stableIterations = 0;
-        if (layoutTimer->interval() != 50) {
-            layoutTimer->setInterval(50);
-        }
     }
 }
 
