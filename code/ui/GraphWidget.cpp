@@ -556,18 +556,18 @@ void GraphWidget::contextMenuEvent(QContextMenuEvent* event) {
             if (!model) return;
             
             const Concept* concept = conceptItem->getConcept();
-            QString conceptName = QString::fromStdString(concept->getName());
+            std::string conceptId = concept->getId();
+            std::string conceptName = concept->getName();
             
             QMessageBox::StandardButton reply = QMessageBox::question(
                 this,
                 "Delete Concept",
-                QString("Are you sure you want to delete '%1'?").arg(conceptName),
+                QString("Are you sure you want to delete '%1'?").arg(QString::fromStdString(conceptName)),
                 QMessageBox::Yes | QMessageBox::No
             );
             
             if (reply == QMessageBox::Yes) {
-                qDebug() << "Delete concept:" << concept->getName().c_str();
-                model->removeConcept(concept->getId());
+                model->removeConcept(conceptId);
             }
         });
         

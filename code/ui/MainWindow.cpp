@@ -604,7 +604,9 @@ void MainWindow::deleteSelected() {
         if (auto conceptItem = dynamic_cast<ConceptGraphicsItem*>(item)) {
             const Concept* concept = conceptItem->getConcept();
             if (concept) {
-                mentalModel->removeConcept(concept->getId());
+                std::string conceptId = concept->getId();
+                std::string conceptName = concept->getName();
+                mentalModel->removeConcept(conceptId);
                 deletedCount++;
             }
         }
