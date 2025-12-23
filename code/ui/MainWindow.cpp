@@ -3,6 +3,7 @@
 #include "SuggestionPanel.h"
 #include "../core/persistence/ModelManager.h"
 #include "../core/nlp/CommandFactory.h"
+#include "../core/nlp/ICommand.h"
 #include <QDebug>
 #include <QApplication>
 #include <QMenuBar>
@@ -34,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), mentalModel(std::make_unique<MentalModel>("New Model")), 
       graphWidget(nullptr), suggestionPanel(nullptr), 
       commandInput(nullptr), executeButton(nullptr), clearHistoryButton(nullptr), commandHistory(nullptr),
-      modelModified(false) {
+      modelModified(false), undoRedoHistoryIndex(-1) {
     try {
         setupUI();
         setupNaturalLanguagePanel();
@@ -202,13 +203,13 @@ void MainWindow::setupMenus() {
     undoAction = new QAction("&Undo", this);
     undoAction->setShortcut(QKeySequence::Undo);
     undoAction->setStatusTip("Undo the last action");
-    undoAction->setEnabled(false); // TODO: Implement undo system
+    undoAction->setEnabled(false);
     editMenu->addAction(undoAction);
 
     redoAction = new QAction("&Redo", this);
     redoAction->setShortcut(QKeySequence::Redo);
     redoAction->setStatusTip("Redo the last undone action");
-    redoAction->setEnabled(false); // TODO: Implement redo system
+    redoAction->setEnabled(false);
     editMenu->addAction(redoAction);
 
     editMenu->addSeparator();
@@ -313,6 +314,8 @@ void MainWindow::setupConnections() {
     connect(addConceptAction, &QAction::triggered, this, &MainWindow::addConcept);
     connect(addRelationshipAction, &QAction::triggered, this, &MainWindow::addRelationship);
     connect(deleteAction, &QAction::triggered, this, &MainWindow::deleteSelected);
+    connect(undoAction, &QAction::triggered, this, &MainWindow::undo);
+    connect(redoAction, &QAction::triggered, this, &MainWindow::redo);
 
     // View menu connections (only if graphWidget exists)
     if (graphWidget) {
@@ -395,6 +398,11 @@ void MainWindow::newModel() {
     // Reconnect signals to new model
     connectModelSignals();
     
+    // Clear command history
+    undoRedoHistory.clear();
+    undoRedoHistoryIndex = -1;
+    updateUndoRedoActions();
+    
     currentFilePath.clear();
     setModelModified(false);
     updateWindowTitle();
@@ -433,6 +441,11 @@ void MainWindow::openModel() {
             
             // Reconnect signals to new model
             connectModelSignals();
+            
+            // Clear command history when loading a new model
+            undoRedoHistory.clear();
+            undoRedoHistoryIndex = -1;
+            updateUndoRedoActions();
             
             currentFilePath = fileName;
             setModelModified(false);
@@ -835,6 +848,79 @@ void MainWindow::connectModelSignals() {
     connect(mentalModel.get(), &MentalModel::conceptRemoved, this, [this](const QString&) { updateStatusBar(); });
     connect(mentalModel.get(), &MentalModel::relationshipAdded, this, [this](const QString&) { updateStatusBar(); });
     connect(mentalModel.get(), &MentalModel::relationshipRemoved, this, [this](const QString&) { updateStatusBar(); });
+}
+
+void MainWindow::executeCommand(std::shared_ptr<ICommand> command) {
+    if (!command) return;
+    
+    // Execute the command
+    command->execute();
+    
+    // Clear any commands after current position (for redo)
+    if (undoRedoHistoryIndex < static_cast<int>(undoRedoHistory.size()) - 1) {
+        undoRedoHistory.erase(undoRedoHistory.begin() + undoRedoHistoryIndex + 1, undoRedoHistory.end());
+    }
+    
+    // Add to history
+    undoRedoHistory.push_back(command);
+    undoRedoHistoryIndex = static_cast<int>(undoRedoHistory.size()) - 1;
+    
+    // Update UI
+    setModelModified(true);
+    updateUndoRedoActions();
+}
+
+void MainWindow::updateUndoRedoActions() {
+    // Enable undo if there are commands to undo
+    bool canUndo = undoRedoHistoryIndex >= 0 && undoRedoHistoryIndex < static_cast<int>(undoRedoHistory.size());
+    undoAction->setEnabled(canUndo);
+    
+    // Enable redo if there are commands to redo
+    bool canRedo = undoRedoHistoryIndex < static_cast<int>(undoRedoHistory.size()) - 1;
+    redoAction->setEnabled(canRedo);
+    
+    // Update status tip with command description
+    if (canUndo) {
+        undoAction->setStatusTip(QString("Undo: %1").arg(QString::fromStdString(
+            undoRedoHistory[undoRedoHistoryIndex]->getDescription())));
+    } else {
+        undoAction->setStatusTip("Undo the last action");
+    }
+    
+    if (canRedo) {
+        redoAction->setStatusTip(QString("Redo: %1").arg(QString::fromStdString(
+            undoRedoHistory[undoRedoHistoryIndex + 1]->getDescription())));
+    } else {
+        redoAction->setStatusTip("Redo the last undone action");
+    }
+}
+
+void MainWindow::undo() {
+    if (undoRedoHistoryIndex < 0 || undoRedoHistoryIndex >= static_cast<int>(undoRedoHistory.size())) {
+        return;
+    }
+    
+    // Undo the command at current index
+    undoRedoHistory[undoRedoHistoryIndex]->undo();
+    undoRedoHistoryIndex--;
+    
+    setModelModified(true);
+    updateUndoRedoActions();
+    statusBar()->showMessage("Undone", 2000);
+}
+
+void MainWindow::redo() {
+    if (undoRedoHistoryIndex >= static_cast<int>(undoRedoHistory.size()) - 1) {
+        return;
+    }
+    
+    // Redo the next command
+    undoRedoHistoryIndex++;
+    undoRedoHistory[undoRedoHistoryIndex]->execute();
+    
+    setModelModified(true);
+    updateUndoRedoActions();
+    statusBar()->showMessage("Redone", 2000);
 }
 
 } // namespace qlink

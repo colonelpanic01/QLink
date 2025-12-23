@@ -1,6 +1,7 @@
 #pragma once
 #include <QMainWindow>
 #include <memory>
+#include <vector>
 #include "../core/model/MentalModel.h"
 #include "../core/common/DataStructures.h"
 
@@ -18,6 +19,7 @@ namespace qlink {
 
 class GraphWidget;
 class SuggestionPanel;
+class ICommand;
 
 /**
  * Main application window
@@ -41,6 +43,8 @@ private slots:
     void addConcept();
     void addRelationship();
     void deleteSelected();
+    void undo();
+    void redo();
 
     // Tools operations
     void validateModel();
@@ -71,6 +75,8 @@ private:
     void setModelModified(bool modified = true);
     void connectModelSignals();
     void addCommandToHistory(const QString& command, bool success, const QString& message);
+    void executeCommand(std::shared_ptr<ICommand> command);
+    void updateUndoRedoActions();
 
     // Core components
     std::unique_ptr<MentalModel> mentalModel;
@@ -87,6 +93,10 @@ private:
     // File management
     QString currentFilePath;
     bool modelModified;
+    
+    // Command history for undo/redo
+    std::vector<std::shared_ptr<ICommand>> undoRedoHistory;
+    int undoRedoHistoryIndex; // -1 means no commands, points to last executed command
 
     // Menu actions
     QAction* newAction;

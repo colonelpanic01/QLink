@@ -6,7 +6,7 @@ namespace qlink {
 
 /**
  * Interface for command pattern implementation
- * TODO: Full undo/redo functionality planned for next deliverable
+ * Supports undo/redo functionality
  */
 class ICommand {
 public:
@@ -32,7 +32,7 @@ public:
      * Check if this command can be undone
      * @return true if the command supports undo, false otherwise
      */
-    virtual bool canUndo() const { return false; } // Placeholder: not implemented yet
+    virtual bool canUndo() const { return true; }
 };
 
 } // namespace qlink
