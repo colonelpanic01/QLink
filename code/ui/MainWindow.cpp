@@ -100,7 +100,6 @@ void MainWindow::setupNaturalLanguagePanel() {
     // Help text only
     auto helpText = new QLabel("Enter commands like: 'add concept AI', 'connect AI to ML', 'remove concept X'");
     helpText->setWordWrap(true);
-    helpText->setProperty("class", "help");
     nlLayout->addWidget(helpText);
     
     // Command input area
@@ -115,11 +114,9 @@ void MainWindow::setupNaturalLanguagePanel() {
     buttonLayout->setSpacing(10);
     
     executeButton = new QPushButton("Execute Command");
-    executeButton->setProperty("class", "primary");
     buttonLayout->addWidget(executeButton);
     
     clearHistoryButton = new QPushButton("Clear History");
-    clearHistoryButton->setProperty("class", "secondary");
     buttonLayout->addWidget(clearHistoryButton);
     buttonLayout->addStretch();
     
@@ -150,201 +147,7 @@ void MainWindow::setupNaturalLanguagePanel() {
 }
 
 void MainWindow::applyModernStyling() {
-    // Modern application-wide stylesheet
-    setStyleSheet(R"(
-        QMainWindow {
-            background-color: #f5f6fa;
-        }
-        
-        QMenuBar {
-            background-color: #2c3e50;
-            color: white;
-            padding: 5px;
-            border: none;
-        }
-        
-        QMenuBar::item {
-            background-color: transparent;
-            padding: 8px 12px;
-            border-radius: 4px;
-        }
-        
-        QMenuBar::item:selected {
-            background-color: #34495e;
-        }
-        
-        QMenu {
-            background-color: white;
-            color: #2c3e50;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            padding: 5px;
-        }
-        
-        QMenu::item {
-            color: #2c3e50;
-            padding: 8px 30px;
-            border-radius: 4px;
-        }
-        
-        QMenu::item:selected {
-            background-color: #8B1538;
-            color: white;
-        }
-        
-        QMenu::item:disabled {
-            color: #95a5a6;
-        }
-        
-        QToolBar {
-            background-color: #34495e;
-            border: none;
-            spacing: 5px;
-            padding: 8px;
-        }
-        
-        QToolButton {
-            background-color: transparent;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px;
-            margin: 2px;
-        }
-        
-        QToolButton:hover {
-            background-color: #4a5f7f;
-        }
-        
-        QToolButton:pressed {
-            background-color: #2c3e50;
-        }
-        
-        QStatusBar {
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            border-top: 1px solid #bdc3c7;
-        }
-        
-        QDockWidget {
-            titlebar-close-icon: url(close.png);
-            titlebar-normal-icon: url(undock.png);
-        }
-        
-        QDockWidget::title {
-            background-color: #8B1538;
-            color: white;
-            padding: 10px;
-            border-radius: 4px 4px 0 0;
-            font-weight: bold;
-        }
-        
-        QDockWidget::close-button, QDockWidget::float-button {
-            background-color: #A01B42;
-            border-radius: 3px;
-            padding: 2px;
-        }
-        
-        QDockWidget::close-button:hover, QDockWidget::float-button:hover {
-            background-color: #C01D4E;
-        }
-        
-        QSplitter::handle {
-            background-color: #bdc3c7;
-        }
-        
-        QSplitter::handle:horizontal {
-            width: 2px;
-        }
-        
-        QSplitter::handle:vertical {
-            height: 2px;
-        }
-        
-        QSplitter::handle:hover {
-            background-color: #8B1538;
-        }
-        
-        QLabel {
-            color: #2c3e50;
-        }
-        
-        QLabel[class="title"] {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        QLabel[class="help"] {
-            color: #7f8c8d;
-            font-size: 11px;
-        }
-        
-        QLabel[class="section"] {
-            font-weight: bold;
-            color: #34495e;
-        }
-        
-        QTextEdit {
-            border: 2px solid #bdc3c7;
-            border-radius: 6px;
-            padding: 8px;
-            font-size: 13px;
-            background-color: white;
-            color: #2c3e50;
-        }
-        
-        QTextEdit:focus {
-            border-color: #8B1538;
-        }
-        
-        QPushButton {
-            background-color: #8B1538;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 20px;
-            font-size: 13px;
-        }
-        
-        QPushButton:hover {
-            background-color: #A01B42;
-        }
-        
-        QPushButton:pressed {
-            background-color: #6B0F2A;
-        }
-        
-        QPushButton[class="primary"] {
-            font-weight: bold;
-        }
-        
-        QPushButton[class="secondary"] {
-            background-color: #95a5a6;
-        }
-        
-        QPushButton[class="secondary"]:hover {
-            background-color: #7f8c8d;
-        }
-        
-        QListWidget {
-            border: 2px solid #bdc3c7;
-            border-radius: 6px;
-            background-color: #ecf0f1;
-            font-size: 12px;
-            color: #2c3e50;
-        }
-        
-        QListWidget::item {
-            padding: 6px;
-            border-bottom: 1px solid #d5dbdb;
-            color: #2c3e50;
-        }
-        
-        QListWidget::item:selected {
-            background-color: #8B1538;
-            color: white;
-        }
-    )");
+    // No custom styling - using Qt's default or system theme
 }
 
 void MainWindow::setupMenus() {
@@ -789,8 +592,54 @@ void MainWindow::addRelationship() {
 }
 
 void MainWindow::deleteSelected() {
-    // TODO: Delete selected items in graph widget
-    statusBar()->showMessage("Delete selected - TODO", 2000);
+    if (!graphWidget || !mentalModel) return;
+    
+    // Get selected items from graph widget's scene
+    QGraphicsScene* graphScene = static_cast<QGraphicsView*>(graphWidget)->scene();
+    if (!graphScene) return;
+    
+    auto selectedItems = graphScene->selectedItems();
+    
+    if (selectedItems.isEmpty()) {
+        statusBar()->showMessage("No items selected", 2000);
+        return;
+    }
+    
+    // Ask for confirmation
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "Delete Selected",
+        QString("Are you sure you want to delete %1 selected item(s)?").arg(selectedItems.size()),
+        QMessageBox::Yes | QMessageBox::No
+    );
+    
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    
+    // Delete each selected item from the model (which will update the view)
+    int deletedCount = 0;
+    for (auto item : selectedItems) {
+        // Check if it's a concept
+        if (auto conceptItem = dynamic_cast<ConceptGraphicsItem*>(item)) {
+            const Concept* concept = conceptItem->getConcept();
+            if (concept) {
+                mentalModel->removeConcept(concept->getId());
+                deletedCount++;
+            }
+        }
+        // Check if it's a relationship
+        else if (auto relationshipItem = dynamic_cast<RelationshipGraphicsItem*>(item)) {
+            const Relationship* relationship = relationshipItem->getRelationship();
+            if (relationship) {
+                mentalModel->removeRelationship(relationship->getId());
+                deletedCount++;
+            }
+        }
+    }
+    
+    setModelModified();
+    statusBar()->showMessage(QString("Deleted %1 item(s)").arg(deletedCount), 2000);
 }
 
 void MainWindow::validateModel() {

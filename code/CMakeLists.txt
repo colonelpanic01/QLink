@@ -52,7 +52,8 @@ if(IGRAPH_LIBRARY_DIRS)
 endif()
 
 # Main executable
-add_executable(Qlink main.cpp ${UI_SOURCES} ${UI_HEADERS})
+qt6_add_resources(RESOURCE_FILES resources.qrc)
+add_executable(Qlink main.cpp ${UI_SOURCES} ${UI_HEADERS} ${RESOURCE_FILES})
 
 # Workaround for deprecated AGL framework on newer macOS
 if(APPLE)

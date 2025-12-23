@@ -2,6 +2,7 @@
 #include <QStyleFactory>
 #include <QDir>
 #include <QStandardPaths>
+#include <QFile>
 #include <iostream>
 
 #include "ui/MainWindow.h"
@@ -13,6 +14,19 @@ int main(int argc, char *argv[])
     
     // Set application properties
     app.setApplicationName("Qlink");
+    
+    // Load modern stylesheet from file
+    QFile styleFile(":/resources/styles/modern.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        app.setStyleSheet(styleSheet);
+        styleFile.close();
+        std::cout << "Stylesheet loaded successfully" << std::endl;
+    } else {
+        std::cerr << "Failed to load stylesheet: " << styleFile.errorString().toStdString() << std::endl;
+        std::cerr << "Continuing without custom styling..." << std::endl;
+    }
+    
     // app.setOrganizationName("CS3307A");
     try {
         std::cout << "Creating main window..." << std::endl;

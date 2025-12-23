@@ -33,25 +33,6 @@ SuggestionPanel::~SuggestionPanel() = default;
 void SuggestionPanel::setupUI() {
     auto mainLayout = new QVBoxLayout(this);
     
-    // Apply styling to the entire panel
-    setStyleSheet(
-        "QWidget { color: #2c3e50; background-color: #f5f6fa; }"
-        "QLabel { color: #2c3e50; }"
-        "QGroupBox { color: #2c3e50; font-weight: bold; background-color: transparent; }"
-        "QGroupBox::title { color: #34495e; }"
-        "QTreeWidget { color: #2c3e50; background-color: white; alternate-background-color: #f8f9fa; gridline-color: #e0e0e0; }"
-        "QTreeWidget::item { color: #2c3e50; padding: 4px; }"
-        "QTreeWidget::item:alternate { background-color: #f8f9fa; }"
-        "QTreeWidget::item:selected { color: white; background-color: #8B1538; }"
-        "QTreeWidget::item:hover { background-color: #e8f4f8; }"
-        "QHeaderView::section { background-color: #8B1538; color: white; padding: 6px; border: none; font-weight: bold; }"
-        "QTextEdit { color: #2c3e50; background-color: white; }"
-        "QLineEdit { color: #2c3e50; background-color: white; border: 1px solid #bdc3c7; border-radius: 3px; padding: 4px; }"
-        "QComboBox { color: #2c3e50; background-color: white; border: 1px solid #bdc3c7; border-radius: 3px; padding: 4px; }"
-        "QComboBox QAbstractItemView { color: #2c3e50; background-color: white; }"
-        "QPushButton { color: #2c3e50; }"
-    );
-    
     // Controls section
     setupControlsSection(mainLayout);
     
@@ -89,7 +70,6 @@ void SuggestionPanel::setupControlsSection(QVBoxLayout* mainLayout) {
     // Generate button
     generateButton = new QPushButton("Generate Suggestions");
     generateButton->setMinimumHeight(36);
-    generateButton->setStyleSheet("QPushButton { font-weight: bold; padding: 10px 16px; color: white; background-color: #8B1538; border: none; border-radius: 4px; font-size: 13px; } QPushButton:hover { background-color: #A01B42; }");
     controlsLayout->addWidget(generateButton);
     
     // Progress bar
@@ -476,13 +456,6 @@ void SuggestionPanel::onSelectionChanged() {
     detailsDialog.setText(details);
     detailsDialog.setIcon(QMessageBox::Information);
     detailsDialog.setStandardButtons(QMessageBox::Ok);
-    detailsDialog.setStyleSheet(
-        "QMessageBox { background-color: #f5f6fa; }"
-        "QLabel { color: #2c3e50; min-width: 500px; }"
-        "QPushButton { background-color: #8B1538; color: white; border: none; "
-        "border-radius: 4px; padding: 8px 16px; min-width: 80px; }"
-        "QPushButton:hover { background-color: #A01B42; }"
-    );
     detailsDialog.exec();
     acceptButton->setEnabled(true);
     rejectButton->setEnabled(true);
