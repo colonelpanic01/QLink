@@ -40,7 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
         setupNaturalLanguagePanel();
         applyModernStyling();
         setupMenus();
-        setupToolbar();
         setupStatusBar();
         setupConnections();
         updateWindowTitle();
@@ -151,6 +150,16 @@ void MainWindow::applyModernStyling() {
 }
 
 void MainWindow::setupMenus() {
+    // Disable native menu bar on macOS to allow styling
+    menuBar()->setNativeMenuBar(false);
+    
+    // Set menu bar text color explicitly
+    QPalette menuPalette = menuBar()->palette();
+    menuPalette.setColor(QPalette::WindowText, QColor("#000000"));
+    menuPalette.setColor(QPalette::ButtonText, QColor("#000000"));
+    menuPalette.setColor(QPalette::Text, QColor("#000000"));
+    menuBar()->setPalette(menuPalette);
+    
     // File Menu
     auto fileMenu = menuBar()->addMenu("&File");
 
@@ -277,32 +286,6 @@ void MainWindow::setupMenus() {
     helpMenu->addAction(aboutAction);
 }
 
-void MainWindow::setupToolbar() {
-    auto toolbar = addToolBar("Main");
-
-    // File operations
-    toolbar->addAction(newAction);
-    toolbar->addAction(openAction);
-    toolbar->addAction(saveAction);
-    toolbar->addSeparator();
-
-    // Edit operations
-    toolbar->addAction(addConceptAction);
-    toolbar->addAction(addRelationshipAction);
-    toolbar->addAction(deleteAction);
-    toolbar->addSeparator();
-
-    // View operations
-    toolbar->addAction(zoomInAction);
-    toolbar->addAction(zoomOutAction);
-    toolbar->addAction(resetZoomAction);
-    toolbar->addAction(fitToWindowAction);
-    toolbar->addSeparator();
-
-    // Tools
-    toolbar->addAction(generateSuggestionsAction);
-}
-
 void MainWindow::setupStatusBar() {
     // Model statistics labels
     conceptCountLabel = new QLabel("Concepts: 0");
@@ -315,9 +298,6 @@ void MainWindow::setupStatusBar() {
     statusBar()->addWidget(conceptCountLabel);
     statusBar()->addWidget(relationshipCountLabel);
     statusBar()->addPermanentWidget(progressBar);
-
-    // General status message
-    statusBar()->showMessage("Ready");
 }
 
 void MainWindow::setupConnections() {
