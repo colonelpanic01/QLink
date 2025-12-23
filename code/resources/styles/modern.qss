@@ -10,12 +10,14 @@ QMenuBar {
     background-color: #ffffff;
     border-bottom: 1px solid #dee2e6;
     padding: 4px;
+    color: #000000;
 }
 
 QMenuBar::item {
     padding: 6px 12px;
     background-color: transparent;
     border-radius: 4px;
+    color: #000000;
 }
 
 QMenuBar::item:selected {
@@ -32,11 +34,13 @@ QMenu {
     border: 1px solid #dee2e6;
     border-radius: 6px;
     padding: 4px;
+    color: #000000;
 }
 
 QMenu::item {
     padding: 8px 24px;
     border-radius: 4px;
+    color: #000000;
 }
 
 QMenu::item:selected {
@@ -76,6 +80,7 @@ QToolButton:pressed {
 QStatusBar {
     background-color: #f8f9fa;
     border-top: 1px solid #dee2e6;
+    color: #000000;
 }
 
 /* Buttons */
@@ -108,6 +113,7 @@ QTextEdit, QLineEdit {
     border-radius: 4px;
     padding: 6px 12px;
     selection-background-color: #0d6efd;
+    color: #000000;
 }
 
 QTextEdit:focus, QLineEdit:focus {
@@ -122,6 +128,7 @@ QComboBox {
     border-radius: 4px;
     padding: 6px 12px;
     min-height: 28px;
+    color: #000000;
 }
 
 QComboBox:hover {
@@ -144,6 +151,11 @@ QComboBox QAbstractItemView {
     selection-color: #212529;
 }
 
+/* Labels */
+QLabel {
+    color: #000000;
+}
+
 /* Group Box */
 QGroupBox {
     border: 1px solid #dee2e6;
@@ -151,6 +163,7 @@ QGroupBox {
     margin-top: 12px;
     padding-top: 12px;
     font-weight: bold;
+    color: #000000;
 }
 
 QGroupBox::title {
@@ -158,6 +171,7 @@ QGroupBox::title {
     subcontrol-position: top left;
     padding: 0 8px;
     background-color: #f8f9fa;
+    color: #000000;
 }
 
 /* Tree Widget */
@@ -166,10 +180,12 @@ QTreeWidget {
     border: 1px solid #dee2e6;
     border-radius: 4px;
     alternate-background-color: #f8f9fa;
+    color: #000000;
 }
 
 QTreeWidget::item {
     padding: 4px;
+    color: #000000;
 }
 
 QTreeWidget::item:hover {
@@ -188,6 +204,7 @@ QHeaderView::section {
     border-right: 1px solid #dee2e6;
     padding: 6px 8px;
     font-weight: bold;
+    color: #000000;
 }
 
 QHeaderView::section:last {
@@ -199,11 +216,13 @@ QListWidget {
     background-color: #ffffff;
     border: 1px solid #dee2e6;
     border-radius: 4px;
+    color: #000000;
 }
 
 QListWidget::item {
     padding: 6px;
     border-bottom: 1px solid #f8f9fa;
+    color: #000000;
 }
 
 QListWidget::item:hover {
