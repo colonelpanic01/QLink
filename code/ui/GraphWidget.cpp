@@ -553,8 +553,22 @@ void GraphWidget::contextMenuEvent(QContextMenuEvent* event) {
         
         menu.addSeparator();
         menu.addAction("Delete Concept", [this, conceptItem]() {
-            // TODO: Implement concept deletion
-            qDebug() << "Delete concept:" << conceptItem->getConcept()->getName().c_str();
+            if (!model) return;
+            
+            const Concept* concept = conceptItem->getConcept();
+            QString conceptName = QString::fromStdString(concept->getName());
+            
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "Delete Concept",
+                QString("Are you sure you want to delete '%1'?").arg(conceptName),
+                QMessageBox::Yes | QMessageBox::No
+            );
+            
+            if (reply == QMessageBox::Yes) {
+                qDebug() << "Delete concept:" << concept->getName().c_str();
+                model->removeConcept(concept->getId());
+            }
         });
         
         menu.exec(event->globalPos());
@@ -572,8 +586,22 @@ void GraphWidget::contextMenuEvent(QContextMenuEvent* event) {
         
         menu.addSeparator();
         menu.addAction("Delete Relationship", [this, relationshipItem]() {
-            // TODO: Implement relationship deletion
-            qDebug() << "Delete relationship:" << relationshipItem->getRelationship()->getType().c_str();
+            if (!model) return;
+            
+            const Relationship* relationship = relationshipItem->getRelationship();
+            QString relType = QString::fromStdString(relationship->getType());
+            
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "Delete Relationship",
+                QString("Are you sure you want to delete this '%1' relationship?").arg(relType),
+                QMessageBox::Yes | QMessageBox::No
+            );
+            
+            if (reply == QMessageBox::Yes) {
+                qDebug() << "Delete relationship:" << relationship->getType().c_str();
+                model->removeRelationship(relationship->getId());
+            }
         });
         
         menu.exec(event->globalPos());
