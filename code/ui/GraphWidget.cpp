@@ -18,6 +18,8 @@
 #include <QTimer>
 #include <QRandomGenerator>
 #include <QDebug>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QMenu>
 #include <QAction>
 #include <QMessageBox>
@@ -526,9 +528,22 @@ void GraphWidget::contextMenuEvent(QContextMenuEvent* event) {
         // Right-clicked on empty space
         QMenu menu(this);
         menu.addAction("Add Concept", [this, event]() {
-            // TODO: Add concept creation dialog
-            QPointF scenePos = mapToScene(event->pos());
-            qDebug() << "Add concept at:" << scenePos;
+            if (!model) return;
+            
+            bool ok;
+            QString name = QInputDialog::getText(this, "Add Concept", 
+                                                "Concept name:", QLineEdit::Normal, 
+                                                "", &ok);
+            
+            if (ok && !name.isEmpty()) {
+                auto concept = std::make_unique<Concept>(name.toStdString());
+                
+                // Set position where user clicked
+                QPointF scenePos = mapToScene(event->pos());
+                concept->setPosition(Position{scenePos.x(), scenePos.y()});
+                
+                model->addConcept(std::move(concept));
+            }
         });
         menu.exec(event->globalPos());
         return;
@@ -641,11 +656,15 @@ void GraphWidget::generateConceptDescription(ConceptGraphicsItem* conceptItem) {
     const Concept* concept = conceptItem->getConcept();
     std::string description = assistant.generateConceptDescription(concept->getName());
     
-    // TODO: Actually update the concept's description in the model
-    QMessageBox::information(this, "Generated Description", 
-        QString("Generated description for '%1':\n\n%2")
-        .arg(QString::fromStdString(concept->getName()))
-        .arg(QString::fromStdString(description)));
+    // Update the concept's description in the model
+    Concept* mutableConcept = model->getConcept(concept->getId());
+    if (mutableConcept) {
+        mutableConcept->setDescription(description);
+        QMessageBox::information(this, "Generated Description", 
+            QString("Generated and saved description for '%1':\n\n%2")
+            .arg(QString::fromStdString(concept->getName()))
+            .arg(QString::fromStdString(description)));
+    }
 }
 
 void GraphWidget::suggestRelatedConcepts(ConceptGraphicsItem* conceptItem) {
