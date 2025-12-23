@@ -45,7 +45,7 @@ void GraphWidget::setupView() {
     setMouseTracking(true);
     
     // Set background
-    setBackgroundBrush(QBrush(QColor(250, 250, 250)));
+    setBackgroundBrush(QBrush(QColor(240, 240, 242)));
 }
 
 void GraphWidget::setupScene() {
@@ -487,13 +487,13 @@ RelationshipGraphicsItem::RelationshipGraphicsItem(const Relationship* relations
     
     QColor color;
     if (weight >= 0.8) {
-        color = QColor(255, 100, 100); // Strong - red
+        color = QColor(46, 204, 113); // Strong - green
     } else if (weight >= 0.6) {
-        color = QColor(255, 200, 100); // Medium - orange
+        color = QColor(241, 196, 15); // Medium - yellow
     } else if (weight >= 0.4) {
-        color = QColor(200, 200, 200); // Weak - gray
+        color = QColor(230, 126, 34); // Weak - orange
     } else {
-        color = QColor(150, 150, 150); // Very weak - light gray
+        color = QColor(231, 76, 60); // Very weak - red
     }
     
     setPen(QPen(color, penWidth));
@@ -638,7 +638,7 @@ void GraphWidget::suggestRelatedConcepts(ConceptGraphicsItem* conceptItem) {
         suggestionsText += "• " + QString::fromStdString(suggestion) + "\n";
     }
     
-    QMessageBox::information(this, "AI Suggestions", suggestionsText);
+    QMessageBox::information(this, "Concept Suggestions", suggestionsText);
 }
 
 void GraphWidget::showRelationshipAIExplanation(RelationshipGraphicsItem* relationshipItem) {

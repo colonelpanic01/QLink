@@ -11,6 +11,7 @@ class QTextEdit;
 class QLineEdit;
 class QPushButton;
 class QListWidget;
+class QSplitter;
 
 
 namespace qlink {
@@ -75,6 +76,7 @@ private:
     std::unique_ptr<MentalModel> mentalModel;
     GraphWidget* graphWidget;
     SuggestionPanel* suggestionPanel;
+    QSplitter* splitter;
     
     // Natural language components
     QTextEdit* commandInput;

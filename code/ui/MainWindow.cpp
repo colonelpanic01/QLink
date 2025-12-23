@@ -63,12 +63,12 @@ void MainWindow::setupUI() {
     // Create central widget with splitter
     auto centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-    auto mainLayout = new QHBoxLayout(centralWidget);
+    auto mainLayout = new QVBoxLayout(centralWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
     
-    auto splitter = new QSplitter(Qt::Horizontal, this);
-    mainLayout->addWidget(splitter);
+    splitter = new QSplitter(Qt::Horizontal, this);
+    mainLayout->addWidget(splitter, 1);
 
     // Create graph widget
     graphWidget = new GraphWidget(this);
@@ -90,49 +90,24 @@ void MainWindow::setupUI() {
 }
 
 void MainWindow::setupNaturalLanguagePanel() {
-    // Create dock widget for natural language commands
-    auto nlDock = new QDockWidget("Natural Language Commands", this);
-    nlDock->setAllowedAreas(Qt::BottomDockWidgetArea);
-    nlDock->setFeatures(QDockWidget::DockWidgetClosable);
-    
-    auto nlWidget = new QWidget(nlDock);
-    nlWidget->setMaximumHeight(250); // Further reduced from 300px
+    // Create regular widget for natural language commands (no dock)
+    auto nlWidget = new QWidget(this);
+    nlWidget->setMaximumHeight(180);
     auto nlLayout = new QVBoxLayout(nlWidget);
     nlLayout->setSpacing(6);
     nlLayout->setContentsMargins(8, 8, 8, 8);
     
-    // Title and help text
-    auto titleLabel = new QLabel("<b>Natural Language Commands</b>");
-    titleLabel->setStyleSheet("font-size: 14px; color: #2c3e50;");
-    nlLayout->addWidget(titleLabel);
-    
+    // Help text only
     auto helpText = new QLabel("Enter commands like: 'add concept AI', 'connect AI to ML', 'remove concept X'");
     helpText->setWordWrap(true);
-    helpText->setStyleSheet("color: #7f8c8d; font-size: 11px;");
+    helpText->setProperty("class", "help");
     nlLayout->addWidget(helpText);
     
     // Command input area
-    auto inputLabel = new QLabel("Command:");
-    inputLabel->setStyleSheet("font-weight: bold; color: #34495e;");
-    nlLayout->addWidget(inputLabel);
-    
     commandInput = new QTextEdit();
     commandInput->setPlaceholderText("Type your natural language command here...");
     commandInput->setMaximumHeight(60);
     commandInput->setMinimumHeight(40);
-    commandInput->setStyleSheet(
-        "QTextEdit {"
-        "   border: 2px solid #bdc3c7;"
-        "   border-radius: 6px;"
-        "   padding: 8px;"
-        "   font-size: 13px;"
-        "   background-color: white;"
-        "   color: #2c3e50;"
-        "}"
-        "QTextEdit:focus {"
-        "   border-color: #3498db;"
-        "}"
-    );
     nlLayout->addWidget(commandInput);
     
     // Buttons
@@ -140,73 +115,29 @@ void MainWindow::setupNaturalLanguagePanel() {
     buttonLayout->setSpacing(10);
     
     executeButton = new QPushButton("Execute Command");
-    executeButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #3498db;"
-        "   color: white;"
-        "   border: none;"
-        "   border-radius: 6px;"
-        "   padding: 10px 20px;"
-        "   font-weight: bold;"
-        "   font-size: 13px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #2980b9;"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: #21618c;"
-        "}"
-    );
+    executeButton->setProperty("class", "primary");
     buttonLayout->addWidget(executeButton);
     
     clearHistoryButton = new QPushButton("Clear History");
-    clearHistoryButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #95a5a6;"
-        "   color: white;"
-        "   border: none;"
-        "   border-radius: 6px;"
-        "   padding: 10px 20px;"
-        "   font-size: 13px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #7f8c8d;"
-        "}"
-    );
+    clearHistoryButton->setProperty("class", "secondary");
     buttonLayout->addWidget(clearHistoryButton);
     buttonLayout->addStretch();
     
     nlLayout->addLayout(buttonLayout);
     
     // Command history
-    auto historyLabel = new QLabel("Command History:");
-    historyLabel->setStyleSheet("font-weight: bold; color: #34495e; margin-top: 10px;");
-    nlLayout->addWidget(historyLabel);
-    
     commandHistory = new QListWidget();
-    commandHistory->setMaximumHeight(100); // Further reduced from 120px
-    commandHistory->setStyleSheet(
-        "QListWidget {"
-        "   border: 2px solid #bdc3c7;"
-        "   border-radius: 6px;"
-        "   background-color: #ecf0f1;"
-        "   font-size: 12px;"
-        "   color: #2c3e50;"
-        "}"
-        "QListWidget::item {"
-        "   padding: 6px;"
-        "   border-bottom: 1px solid #d5dbdb;"
-        "   color: #2c3e50;"
-        "}"
-        "QListWidget::item:selected {"
-        "   background-color: #3498db;"
-        "   color: white;"
-        "}"
-    );
+    commandHistory->setMaximumHeight(100);
     nlLayout->addWidget(commandHistory);
     
-    nlDock->setWidget(nlWidget);
-    addDockWidget(Qt::BottomDockWidgetArea, nlDock);
+    // Add natural language panel to central widget's main layout
+    auto centralWidget = qobject_cast<QWidget*>(this->centralWidget());
+    if (centralWidget) {
+        auto mainLayout = qobject_cast<QVBoxLayout*>(centralWidget->layout());
+        if (mainLayout) {
+            mainLayout->addWidget(nlWidget, 0);
+        }
+    }
     
     // Connect signals
     connect(executeButton, &QPushButton::clicked, this, &MainWindow::executeNaturalLanguageCommand);
@@ -257,7 +188,7 @@ void MainWindow::applyModernStyling() {
         }
         
         QMenu::item:selected {
-            background-color: #3498db;
+            background-color: #8B1538;
             color: white;
         }
         
@@ -301,7 +232,7 @@ void MainWindow::applyModernStyling() {
         }
         
         QDockWidget::title {
-            background-color: #34495e;
+            background-color: #8B1538;
             color: white;
             padding: 10px;
             border-radius: 4px 4px 0 0;
@@ -309,13 +240,13 @@ void MainWindow::applyModernStyling() {
         }
         
         QDockWidget::close-button, QDockWidget::float-button {
-            background-color: #4a5f7f;
+            background-color: #A01B42;
             border-radius: 3px;
             padding: 2px;
         }
         
         QDockWidget::close-button:hover, QDockWidget::float-button:hover {
-            background-color: #5a6f8f;
+            background-color: #C01D4E;
         }
         
         QSplitter::handle {
@@ -331,7 +262,87 @@ void MainWindow::applyModernStyling() {
         }
         
         QSplitter::handle:hover {
-            background-color: #3498db;
+            background-color: #8B1538;
+        }
+        
+        QLabel {
+            color: #2c3e50;
+        }
+        
+        QLabel[class="title"] {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        QLabel[class="help"] {
+            color: #7f8c8d;
+            font-size: 11px;
+        }
+        
+        QLabel[class="section"] {
+            font-weight: bold;
+            color: #34495e;
+        }
+        
+        QTextEdit {
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 13px;
+            background-color: white;
+            color: #2c3e50;
+        }
+        
+        QTextEdit:focus {
+            border-color: #8B1538;
+        }
+        
+        QPushButton {
+            background-color: #8B1538;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+        
+        QPushButton:hover {
+            background-color: #A01B42;
+        }
+        
+        QPushButton:pressed {
+            background-color: #6B0F2A;
+        }
+        
+        QPushButton[class="primary"] {
+            font-weight: bold;
+        }
+        
+        QPushButton[class="secondary"] {
+            background-color: #95a5a6;
+        }
+        
+        QPushButton[class="secondary"]:hover {
+            background-color: #7f8c8d;
+        }
+        
+        QListWidget {
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            background-color: #ecf0f1;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        
+        QListWidget::item {
+            padding: 6px;
+            border-bottom: 1px solid #d5dbdb;
+            color: #2c3e50;
+        }
+        
+        QListWidget::item:selected {
+            background-color: #8B1538;
+            color: white;
         }
     )");
 }
@@ -799,7 +810,7 @@ void MainWindow::validateModel() {
 void MainWindow::generateSuggestions() {
     progressBar->setVisible(true);
     progressBar->setRange(0, 0); // Indeterminate progress
-    statusBar()->showMessage("Generating AI suggestions...");
+    statusBar()->showMessage("Generating concept suggestions...");
 
     // Trigger suggestion generation in the panel
     suggestionPanel->generateSuggestions();
