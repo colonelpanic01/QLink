@@ -92,7 +92,8 @@ void MainWindow::setupUI() {
 void MainWindow::setupNaturalLanguagePanel() {
     // Create dock widget for natural language commands
     auto nlDock = new QDockWidget("Natural Language Commands", this);
-    nlDock->setAllowedAreas(Qt::BottomDockWidgetArea | Qt::RightDockWidgetArea);
+    nlDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    nlDock->setFeatures(QDockWidget::DockWidgetClosable);
     
     auto nlWidget = new QWidget(nlDock);
     nlWidget->setMaximumHeight(250); // Further reduced from 300px

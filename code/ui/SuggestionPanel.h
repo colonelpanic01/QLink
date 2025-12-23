@@ -50,7 +50,6 @@ private:
     void setupUI();
     void setupControlsSection(QVBoxLayout* mainLayout);
     void setupSuggestionsSection(QVBoxLayout* mainLayout);
-    void setupDetailsSection(QVBoxLayout* mainLayout);
     void setupActionButtons(QVBoxLayout* mainLayout);
     void setupConnections();
     void generateRealSuggestions(const QString& algorithm, double minConfidence);
@@ -70,8 +69,6 @@ private:
     QLineEdit* filterEdit;
     QComboBox* sortCombo;
     QTreeWidget* suggestionsTree;
-    
-    QTextEdit* detailsText;
     
     QPushButton* acceptButton;
     QPushButton* rejectButton;

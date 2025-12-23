@@ -2,6 +2,7 @@
 #include "../core/ai/CommonNeighborPredictor.h"
 #include "../core/ai/JaccardCoefficientPredictor.h"
 #include "../core/ai/PreferentialAttachmentPredictor.h"
+#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -34,16 +35,19 @@ void SuggestionPanel::setupUI() {
     
     // Apply styling to the entire panel
     setStyleSheet(
-        "QWidget { color: #2c3e50; }"
+        "QWidget { color: #2c3e50; background-color: #f5f6fa; }"
         "QLabel { color: #2c3e50; }"
-        "QGroupBox { color: #2c3e50; font-weight: bold; }"
+        "QGroupBox { color: #2c3e50; font-weight: bold; background-color: transparent; }"
         "QGroupBox::title { color: #34495e; }"
-        "QTreeWidget { color: #2c3e50; background-color: white; }"
-        "QTreeWidget::item { color: #2c3e50; }"
+        "QTreeWidget { color: #2c3e50; background-color: white; alternate-background-color: #f8f9fa; gridline-color: #e0e0e0; }"
+        "QTreeWidget::item { color: #2c3e50; padding: 4px; }"
+        "QTreeWidget::item:alternate { background-color: #f8f9fa; }"
         "QTreeWidget::item:selected { color: white; background-color: #3498db; }"
+        "QTreeWidget::item:hover { background-color: #e8f4f8; }"
+        "QHeaderView::section { background-color: #34495e; color: white; padding: 6px; border: none; font-weight: bold; }"
         "QTextEdit { color: #2c3e50; background-color: white; }"
-        "QLineEdit { color: #2c3e50; background-color: white; }"
-        "QComboBox { color: #2c3e50; background-color: white; }"
+        "QLineEdit { color: #2c3e50; background-color: white; border: 1px solid #bdc3c7; border-radius: 3px; padding: 4px; }"
+        "QComboBox { color: #2c3e50; background-color: white; border: 1px solid #bdc3c7; border-radius: 3px; padding: 4px; }"
         "QComboBox QAbstractItemView { color: #2c3e50; background-color: white; }"
         "QPushButton { color: #2c3e50; }"
     );
@@ -51,16 +55,13 @@ void SuggestionPanel::setupUI() {
     // Title
     auto titleLabel = new QLabel("AI Suggestions");
     titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px; color: #2c3e50;");
-    mainLayout->addWidget(titleLabel);
+    mainLayout->addWidget(titleLabel, 0); // No stretch
     
     // Controls section
     setupControlsSection(mainLayout);
     
-    // Suggestions list
+    // Suggestions list - give this the most space
     setupSuggestionsSection(mainLayout);
-    
-    // Details section
-    setupDetailsSection(mainLayout);
     
     // Action buttons
     setupActionButtons(mainLayout);
@@ -85,14 +86,15 @@ void SuggestionPanel::setupControlsSection(QVBoxLayout* mainLayout) {
     auto thresholdLayout = new QHBoxLayout();
     thresholdLayout->addWidget(new QLabel("Min Confidence:"));
     confidenceThreshold = new QLineEdit("0.5");
-    confidenceThreshold->setMaximumWidth(60);
+    confidenceThreshold->setMinimumWidth(50);
     thresholdLayout->addWidget(confidenceThreshold);
     thresholdLayout->addStretch();
     controlsLayout->addLayout(thresholdLayout);
     
     // Generate button
     generateButton = new QPushButton("Generate Suggestions");
-    generateButton->setStyleSheet("QPushButton { font-weight: bold; padding: 8px; color: white; background-color: #3498db; border: none; border-radius: 4px; } QPushButton:hover { background-color: #2980b9; }");
+    generateButton->setMinimumHeight(36);
+    generateButton->setStyleSheet("QPushButton { font-weight: bold; padding: 10px 16px; color: white; background-color: #3498db; border: none; border-radius: 4px; font-size: 13px; } QPushButton:hover { background-color: #2980b9; }");
     controlsLayout->addWidget(generateButton);
     
     // Progress bar
@@ -100,7 +102,7 @@ void SuggestionPanel::setupControlsSection(QVBoxLayout* mainLayout) {
     progressBar->setVisible(false);
     controlsLayout->addWidget(progressBar);
     
-    mainLayout->addWidget(controlsGroup);
+    mainLayout->addWidget(controlsGroup, 0); // No stretch - fixed size
 }
 
 void SuggestionPanel::setupSuggestionsSection(QVBoxLayout* mainLayout) {
@@ -128,29 +130,15 @@ void SuggestionPanel::setupSuggestionsSection(QVBoxLayout* mainLayout) {
     suggestionsTree->setAlternatingRowColors(true);
     suggestionsTree->setSelectionMode(QAbstractItemView::SingleSelection);
     suggestionsTree->setSortingEnabled(true);
+    suggestionsTree->setMinimumHeight(300); // Increased from 200 to ensure more visible space
     
-    // Set column widths
-    suggestionsTree->header()->resizeSection(0, 100);
-    suggestionsTree->header()->resizeSection(1, 100);
-    suggestionsTree->header()->resizeSection(2, 80);
-    suggestionsTree->header()->resizeSection(3, 80);
+    // Set columns to resize dynamically
+    suggestionsTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    suggestionsTree->header()->setStretchLastSection(true); // Stretch last column to fill space
+    suggestionsTree->setWordWrap(false);
     
     suggestionsLayout->addWidget(suggestionsTree);
-    mainLayout->addWidget(suggestionsGroup);
-}
-
-void SuggestionPanel::setupDetailsSection(QVBoxLayout* mainLayout) {
-    auto detailsGroup = new QGroupBox("Details");
-    auto detailsLayout = new QVBoxLayout(detailsGroup);
-    
-    // Details text area
-    detailsText = new QTextEdit();
-    detailsText->setMaximumHeight(120);
-    detailsText->setReadOnly(true);
-    detailsText->setPlaceholderText("Select a suggestion to see details and explanation...");
-    detailsLayout->addWidget(detailsText);
-    
-    mainLayout->addWidget(detailsGroup);
+    mainLayout->addWidget(suggestionsGroup, 4); // Increased stretch factor from 3 to 4
 }
 
 void SuggestionPanel::setupActionButtons(QVBoxLayout* mainLayout) {
@@ -235,7 +223,6 @@ void SuggestionPanel::addSuggestion(const LinkSuggestion& suggestion) {
 void SuggestionPanel::clearSuggestions() {
     suggestions.clear();
     suggestionsTree->clear();
-    detailsText->clear();
     acceptButton->setEnabled(false);
     rejectButton->setEnabled(false);
     updateSuggestionCount();
@@ -243,9 +230,7 @@ void SuggestionPanel::clearSuggestions() {
 
 void SuggestionPanel::generateSuggestions() {
     if (!model) {
-        if (detailsText) {
-            detailsText->setText("No model available for generating suggestions.");
-        }
+        QMessageBox::warning(this, "No Model", "No model available for generating suggestions.");
         return;
     }
     
@@ -284,9 +269,8 @@ void SuggestionPanel::generateSuggestions() {
         
         emit suggestionsGenerated(suggestions.size());
     } catch (const std::exception& e) {
-        if (detailsText) {
-            detailsText->setText(QString("Error generating suggestions: %1").arg(e.what()));
-        }
+        QMessageBox::warning(this, "Error", 
+            QString("Error generating suggestions: %1").arg(e.what()));
         // Reset UI state
         if (progressBar) {
             progressBar->setVisible(false);
@@ -425,7 +409,6 @@ void SuggestionPanel::acceptSuggestion() {
     
     // Update UI
     updateSuggestionCount();
-    detailsText->clear();
     acceptButton->setEnabled(false);
     rejectButton->setEnabled(false);
     
@@ -447,7 +430,6 @@ void SuggestionPanel::rejectSuggestion() {
     
     // Update UI
     updateSuggestionCount();
-    detailsText->clear();
     acceptButton->setEnabled(false);
     rejectButton->setEnabled(false);
     
@@ -457,7 +439,6 @@ void SuggestionPanel::rejectSuggestion() {
 void SuggestionPanel::onSelectionChanged() {
     auto currentItem = suggestionsTree->currentItem();
     if (!currentItem) {
-        detailsText->clear();
         acceptButton->setEnabled(false);
         rejectButton->setEnabled(false);
         return;
@@ -478,21 +459,37 @@ void SuggestionPanel::onSelectionChanged() {
         if (targetConcept) targetName = targetConcept->getName();
     }
     
-    // Update details text
+    // Show modal dialog with details
     QString details = QString(
-        "Link Suggestion Details:\n\n"
-        "Source Concept: %1\n"
-        "Target Concept: %2\n"
-        "Algorithm Used: %3\n"
-        "Confidence: %4\n\n"
-        "Explanation:\n%5"
+        "<h3>Link Suggestion Details</h3>"
+        "<table style='width:100%; margin-top:10px;'>"
+        "<tr><td><b>Source Concept:</b></td><td>%1</td></tr>"
+        "<tr><td><b>Target Concept:</b></td><td>%2</td></tr>"
+        "<tr><td><b>Algorithm Used:</b></td><td>%3</td></tr>"
+        "<tr><td><b>Confidence:</b></td><td>%4</td></tr>"
+        "</table>"
+        "<h4 style='margin-top:15px;'>Explanation:</h4>"
+        "<p style='margin-left:10px;'>%5</p>"
     ).arg(QString::fromStdString(sourceName))
      .arg(QString::fromStdString(targetName))
      .arg(QString::fromStdString(suggestion.algorithmName))
      .arg(suggestion.confidence, 0, 'f', 3)
-     .arg(QString::fromStdString(suggestion.explanation));
+     .arg(QString::fromStdString(suggestion.explanation).replace("\n", "<br>"));
     
-    detailsText->setText(details);
+    QMessageBox detailsDialog(this);
+    detailsDialog.setWindowTitle("AI Suggestion Details");
+    detailsDialog.setTextFormat(Qt::RichText);
+    detailsDialog.setText(details);
+    detailsDialog.setIcon(QMessageBox::Information);
+    detailsDialog.setStandardButtons(QMessageBox::Ok);
+    detailsDialog.setStyleSheet(
+        "QMessageBox { background-color: #f5f6fa; }"
+        "QLabel { color: #2c3e50; min-width: 500px; }"
+        "QPushButton { background-color: #3498db; color: white; border: none; "
+        "border-radius: 4px; padding: 8px 16px; min-width: 80px; }"
+        "QPushButton:hover { background-color: #2980b9; }"
+    );
+    detailsDialog.exec();
     acceptButton->setEnabled(true);
     rejectButton->setEnabled(true);
 }
