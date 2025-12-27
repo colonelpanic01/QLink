@@ -4,6 +4,7 @@
 #include "../core/persistence/ModelManager.h"
 #include "../core/nlp/CommandFactory.h"
 #include "../core/nlp/ICommand.h"
+#include "../core/nlp/Commands.h"
 #include <QDebug>
 #include <QApplication>
 #include <QMenuBar>
@@ -45,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
         setupConnections();
         updateWindowTitle();
         updateStatusBar();
+        updateUndoRedoActions();  // Initialize undo/redo state
         
 
     } catch (const std::exception& e) {
@@ -516,14 +518,12 @@ void MainWindow::addConcept() {
                                         "", &ok);
     
     if (ok && !name.isEmpty()) {
-        // Create the concept
-        auto concept = std::make_unique<Concept>(name.toStdString());
-        
-        // Add to model
-        mentalModel->addConcept(std::move(concept));
-        
-        // Mark as modified
-        setModelModified(true);
+        // Create and execute command for undo/redo support
+        auto command = std::make_shared<AddConceptCommand>(
+            mentalModel.get(),
+            name.toStdString()
+        );
+        executeCommand(command);
         
         statusBar()->showMessage(QString("Added concept: %1").arg(name), 2000);
     }
@@ -573,10 +573,16 @@ void MainWindow::addRelationship() {
     }
     
     if (!sourceId.empty() && !targetId.empty() && sourceId != targetId) {
-        // Use the 3-parameter constructor (sourceId, targetId, type, directed, weight)
-        auto relationship = std::make_unique<Relationship>(sourceId, targetId, relationshipType.toStdString(), false, 1.0);
-        mentalModel->addRelationship(std::move(relationship));
-        setModelModified(true);
+        // Create and execute command for undo/redo support
+        auto command = std::make_shared<CreateRelationshipCommand>(
+            mentalModel.get(),
+            sourceId,
+            targetId,
+            relationshipType.toStdString(),
+            false  // not directed
+        );
+        executeCommand(command);
+        
         statusBar()->showMessage(QString("Added relationship: %1 %2 %3")
                                 .arg(sourceName, relationshipType, targetName), 3000);
     } else if (sourceId == targetId) {
