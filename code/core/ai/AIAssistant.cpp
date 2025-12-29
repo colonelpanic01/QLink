@@ -37,7 +37,7 @@ public:
     Impl() : networkManager(new QNetworkAccessManager()), 
              apiEndpoint("https://api.cohere.ai/v1/chat"),
              serviceAvailable(false),
-             timeoutMs(10000) {
+             timeoutMs(30000) {
         loadFromEnvFile();
         serviceAvailable = !apiKey.isEmpty();
         qDebug() << "Cohere API key:" << (apiKey.isEmpty() ? "NOT FOUND" : "LOADED");
@@ -96,6 +96,7 @@ public:
         QNetworkRequest request((QUrl(apiEndpoint)));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         request.setRawHeader("Authorization", ("Bearer " + apiKey).toUtf8());
+        request.setTransferTimeout(30000);
         
         QNetworkReply* reply = networkManager->post(request, data);
         
