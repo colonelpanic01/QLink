@@ -1,7 +1,7 @@
 # Assignment 3: Qlink - An Interactive Mental Model Simulator with Link Prediction
 
 AI powered mental model visualization with graph based link prediction using Qt6 and igraph.
-Deliverable 2 Video Demo Link (consists of design breakdown and actual demo): https://youtu.be/m3_jfGLxcH0
+
 ## Project Structure
 
 ```
