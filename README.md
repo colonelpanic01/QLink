@@ -1,7 +1,7 @@
 # Assignment2 - Mental Model Visualization
 
 AI powered mental model visualization with graph based link prediction using Qt6 and igraph.
-Deliverable 2 Video Demo Link (consists of design breakdown and actual demo): https://youtu.be/uelY68fv51A
+
 ## Project Structure
 
 ```
