@@ -1,0 +1,442 @@
+@startuml QlinkClassDiagram_Deliverable3
+!theme plain
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 60
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam maxMessageSize 200
+skinparam wrapWidth 250
+skinparam backgroundColor white
+left to right direction
+title Qlink Mental Model Simulator - Class Diagram (Deliverable 3)
+
+package "UI Layer" #E8F4F8 {
+    class MainWindow <<QMainWindow>> {
+        -mentalModel: unique_ptr<MentalModel>
+        -graphWidget: GraphWidget*
+        -suggestionPanel: SuggestionPanel*
+        -undoRedoHistory: vector<shared_ptr<ICommand>>
+        -undoRedoHistoryIndex: int
+        -currentFilePath: QString
+        -modelModified: bool
+        +newModel(): void
+        +openModel(): void
+        +saveModel(): void
+        +saveAsModel(): void
+        +exportModel(): void
+        +addConcept(): void
+        +addRelationship(): void
+        +deleteSelected(): void
+        +undo(): void
+        +redo(): void
+        +validateModel(): void
+        +generateSuggestions(): void
+        +showStatistics(): void
+        +executeNaturalLanguageCommand(): void
+        -executeCommand(cmd: shared_ptr<ICommand>): void
+        -updateUndoRedoActions(): void
+        -setupMenus(): void
+        -setupConnections(): void
+    }
+
+    class GraphWidget <<QGraphicsView>> {
+        -scene: QGraphicsScene*
+        -model: MentalModel*
+        -conceptItems: QMap<string, ConceptGraphicsItem*>
+        -relationshipItems: QMap<string, RelationshipGraphicsItem*>
+        -zoomFactor: double
+        -selectedConcept: ConceptGraphicsItem*
+        -isDragging: bool
+        +setModel(model: MentalModel*): void
+        +zoomIn(): void
+        +zoomOut(): void
+        +resetZoom(): void
+        +fitToWindow(): void
+        #wheelEvent(event: QWheelEvent*): void
+        #mousePressEvent(event: QMouseEvent*): void
+        #contextMenuEvent(event: QContextMenuEvent*): void
+        -onConceptAdded(conceptId: QString): void
+        -onConceptRemoved(conceptId: QString): void
+        -onRelationshipAdded(relationshipId: QString): void
+        -onRelationshipRemoved(relationshipId: QString): void
+        -rebuildGraph(): void
+        -initializePositions(): void
+        -showConceptAIExplanation(item: ConceptGraphicsItem*): void
+    }
+
+    class SuggestionPanel <<QWidget>> {
+        -model: MentalModel*
+        -suggestions: QList<LinkSuggestion>
+        -algorithmCombo: QComboBox*
+        -confidenceThreshold: QLineEdit*
+        -suggestionsTree: QTreeWidget*
+        -progressBar: QProgressBar*
+        +setModel(model: MentalModel*): void
+        +addSuggestion(suggestion: LinkSuggestion): void
+        +clearSuggestions(): void
+        +generateSuggestions(): void
+        --signals--
+        +suggestionsGenerated(count: int)
+        +suggestionAccepted(suggestion: LinkSuggestion)
+        +suggestionRejected(suggestion: LinkSuggestion)
+        -acceptSuggestion(): void
+        -rejectSuggestion(): void
+        -filterSuggestions(): void
+        -sortSuggestions(): void
+        -generateRealSuggestions(algorithm: QString, minConfidence: double): void
+    }
+    
+    class ConceptGraphicsItem <<QGraphicsEllipseItem>> {
+        -concept: const Concept*
+        -textItem: QGraphicsTextItem*
+        +getConcept(): const Concept*
+        #itemChange(change: GraphicsItemChange, value: QVariant): QVariant
+    }
+    
+    class RelationshipGraphicsItem <<QGraphicsLineItem>> {
+        -relationship: const Relationship*
+        +getRelationship(): const Relationship*
+        +updatePosition(): void
+    }
+}
+
+package "Core Domain Layer" #F0F8E8 {
+    
+    package "Model" {
+        class MentalModel <<QObject>> {
+            -concepts: vector<unique_ptr<Concept>>
+            -relationships: vector<unique_ptr<Relationship>>
+            +addConcept(concept: unique_ptr<Concept>): string
+            +removeConcept(conceptId: string): unique_ptr<Concept>
+            +getConcept(conceptId: string): const Concept*
+            +getAllConcepts(): vector<const Concept*>
+            +addRelationship(rel: unique_ptr<Relationship>): string
+            +removeRelationship(relationshipId: string): unique_ptr<Relationship>
+            +getRelationship(relationshipId: string): const Relationship*
+            +getAllRelationships(): vector<const Relationship*>
+            +getRelationshipsForConcept(conceptId: string): vector<const Relationship*>
+            +clear(): void
+            +getStatistics(): ModelStatistics
+            --signals--
+            +conceptAdded(conceptId: QString)
+            +conceptRemoved(conceptId: QString)
+            +conceptModified(conceptId: QString)
+            +relationshipAdded(relationshipId: QString)
+            +relationshipRemoved(relationshipId: QString)
+            +modelChanged(event: ModelChangeEvent)
+        }
+
+        class Concept {
+            -id: string
+            -name: string
+            -description: string
+            -position: Position
+            +getId(): string
+            +getName(): string
+            +getDescription(): string
+            +getPosition(): Position
+            +setName(name: string): void
+            +setDescription(desc: string): void
+            +setPosition(pos: Position): void
+        }
+
+        class Relationship {
+            -id: string
+            -sourceConceptId: string
+            -targetConceptId: string
+            -type: string
+            -isDirected: bool
+            -strength: RelationshipStrength
+            +getId(): string
+            +getSourceConceptId(): string
+            +getTargetConceptId(): string
+            +getType(): string
+            +isDirected(): bool
+            +getStrength(): RelationshipStrength
+            +setType(type: string): void
+            +setStrength(strength: RelationshipStrength): void
+            +connects(conceptId: string): bool
+            +connectsBoth(id1: string, id2: string): bool
+        }
+        
+        class Position <<struct>> {
+            +x: double
+            +y: double
+            +Position(x: double, y: double)
+            +operator==(other: Position): bool
+        }
+        
+        class LinkSuggestion <<struct>> {
+            +sourceConceptId: string
+            +targetConceptId: string
+            +suggestedType: string
+            +algorithmName: string
+            +confidence: double
+            +explanation: string
+            +LinkSuggestion(source, target, type, confidence, explanation, algorithm)
+        }
+        
+        class ModelChangeEvent <<struct>> {
+            +type: ChangeType
+            +entityId: string
+            +details: string
+            +ModelChangeEvent(type, id, details)
+        }
+        
+        enum ChangeType {
+            CONCEPT_ADDED
+            CONCEPT_REMOVED
+            CONCEPT_MODIFIED
+            RELATIONSHIP_ADDED
+            RELATIONSHIP_REMOVED
+            RELATIONSHIP_MODIFIED
+            MODEL_CLEARED
+        }
+        
+        enum RelationshipStrength {
+            VERY_WEAK
+            WEAK
+            MEDIUM
+            STRONG
+        }
+    }
+
+    package "Command Pattern" {
+        interface ICommand <<interface>> {
+            +{abstract} execute(): void
+            +{abstract} undo(): void
+            +{abstract} getDescription(): string
+            +canUndo(): bool
+        }
+
+        class AddConceptCommand {
+            -model: MentalModel*
+            -conceptName: string
+            -conceptDescription: string
+            -addedConceptId: string
+            +AddConceptCommand(model, name, description)
+            +execute(): void
+            +undo(): void
+            +getDescription(): string
+        }
+
+        class RemoveConceptCommand {
+            -model: MentalModel*
+            -conceptId: string
+            -removedConcept: unique_ptr<Concept>
+            -removedRelationships: vector<unique_ptr<Relationship>>
+            +RemoveConceptCommand(model, conceptId)
+            +execute(): void
+            +undo(): void
+            +getDescription(): string
+        }
+
+        class CreateRelationshipCommand {
+            -model: MentalModel*
+            -sourceConceptId: string
+            -targetConceptId: string
+            -relationshipType: string
+            -isDirected: bool
+            -addedRelationshipId: string
+            +CreateRelationshipCommand(model, sourceId, targetId, type, directed)
+            +execute(): void
+            +undo(): void
+            +getDescription(): string
+        }
+
+        class DeleteRelationshipCommand {
+            -model: MentalModel*
+            -relationshipId: string
+            -removedRelationship: unique_ptr<Relationship>
+            +DeleteRelationshipCommand(model, relationshipId)
+            +execute(): void
+            +undo(): void
+            +getDescription(): string
+        }
+
+        class CommandFactory <<Factory>> {
+            +{static} createCommand(input: string, model: MentalModel*): unique_ptr<ICommand>
+            +{static} isValidCommand(input: string): bool
+            +{static} getHelpText(): string
+        }
+    }
+
+    package "AI Prediction" {
+        interface ILinkPredictor <<interface>> {
+            +{abstract} predictLinks(model: MentalModel&, maxSuggestions: int): vector<LinkSuggestion>
+            +{abstract} getAlgorithmName(): string
+            +{abstract} getDescription(): string
+        }
+        
+        abstract class IGraphLinkPredictor <<abstract>> {
+            #{abstract} convertToIGraph(model: MentalModel&, graph: igraph_t*, conceptToVertex: map<string, int>&): void
+            #{abstract} convertSimilarityToSuggestions(similarity: igraph_matrix_t*, conceptToVertex: map, model: MentalModel&, maxSuggestions: int, algorithmName: string): vector<LinkSuggestion>
+            #{abstract} cleanupIGraph(graph: igraph_t*): void
+        }
+
+        class CommonNeighborPredictor {
+            +predictLinks(model: MentalModel&, maxSuggestions: int): vector<LinkSuggestion>
+            +getAlgorithmName(): string
+            +getDescription(): string
+        }
+
+        class JaccardCoefficientPredictor {
+            +predictLinks(model: MentalModel&, maxSuggestions: int): vector<LinkSuggestion>
+            +getAlgorithmName(): string
+            +getDescription(): string
+        }
+
+        class PreferentialAttachmentPredictor {
+            +predictLinks(model: MentalModel&, maxSuggestions: int): vector<LinkSuggestion>
+            +getAlgorithmName(): string
+            +getDescription(): string
+        }
+        
+        class LinkPredictorFactory <<Factory>> {
+            <<enumeration>> AlgorithmType
+            +{static} createPredictor(type: AlgorithmType): unique_ptr<ILinkPredictor>
+            +{static} getAvailableAlgorithms(): vector<AlgorithmType>
+            +{static} getAlgorithmName(type: AlgorithmType): string
+        }
+        
+        class AIAssistant {
+            -pImpl: unique_ptr<Impl>
+            +explainConnection(concept1: Concept&, concept2: Concept&): string
+            +generateConceptDescription(conceptName: string): string
+            +suggestRelatedConcepts(concept: Concept&): vector<string>
+            +isServiceAvailable(): bool
+            +setApiKey(apiKey: QString): void
+            +setTimeout(milliseconds: int): void
+            +clearCache(): void
+            +getCacheSize(): size_t
+        }
+    }
+
+    package "Persistence" {
+        class ModelManager <<QObject>> {
+            -recentFiles: QStringList
+            -defaultSaveDirectory: QString
+            +saveModel(model: MentalModel&, filePath: QString): bool
+            +loadModel(filePath: QString): unique_ptr<MentalModel>
+            +exportModel(model: MentalModel&, filePath: QString, format: ExportFormat): bool
+            +getRecentFiles(): QStringList
+            +addToRecentFiles(filePath: QString): void
+            +getDefaultSaveDirectory(): QString
+            +setDefaultSaveDirectory(directory: QString): void
+            --signals--
+            +modelSaved(filePath: QString)
+            +modelLoaded(filePath: QString)
+            +modelExported(filePath: QString, format: ExportFormat)
+            +errorOccurred(error: QString)
+            -serializeModel(model: MentalModel&): QJsonObject
+            -deserializeModel(jsonModel: QJsonObject): unique_ptr<MentalModel>
+            -serializeConcept(concept: Concept&): QJsonObject
+            -deserializeConcept(jsonConcept: QJsonObject): unique_ptr<Concept>
+            -serializeRelationship(rel: Relationship&): QJsonObject
+            -deserializeRelationship(jsonRel: QJsonObject): unique_ptr<Relationship>
+            -exportToJSON(model: MentalModel&, filePath: QString): bool
+        }
+        
+        enum ExportFormat {
+            JSON
+        }
+    }
+}
+
+' Key relationships
+MentalModel *-- Concept : contains
+MentalModel *-- Relationship : contains
+Concept *-- Position : has
+ModelChangeEvent --> ChangeType : uses
+Relationship --> RelationshipStrength : has
+
+MainWindow *-- GraphWidget : contains
+MainWindow *-- SuggestionPanel : contains
+MainWindow --> MentalModel : manages
+MainWindow --> ICommand : executes
+MainWindow --> ModelManager : uses
+
+GraphWidget --> MentalModel : observes
+GraphWidget *-- ConceptGraphicsItem : contains
+GraphWidget *-- RelationshipGraphicsItem : contains
+GraphWidget --> AIAssistant : uses
+
+SuggestionPanel --> MentalModel : analyzes
+SuggestionPanel --> ILinkPredictor : uses
+SuggestionPanel --> LinkSuggestion : displays
+SuggestionPanel --> LinkPredictorFactory : uses
+
+ICommand <|.. AddConceptCommand : implements
+ICommand <|.. RemoveConceptCommand : implements
+ICommand <|.. CreateRelationshipCommand : implements
+ICommand <|.. DeleteRelationshipCommand : implements
+
+ILinkPredictor <|-- IGraphLinkPredictor : extends
+IGraphLinkPredictor <|-- CommonNeighborPredictor : extends
+IGraphLinkPredictor <|-- JaccardCoefficientPredictor : extends
+IGraphLinkPredictor <|-- PreferentialAttachmentPredictor : extends
+
+CommandFactory ..> ICommand : creates
+ModelManager ..> MentalModel : persists
+ModelManager --> ExportFormat : uses
+LinkPredictorFactory ..> ILinkPredictor : creates
+
+AddConceptCommand --> MentalModel : modifies
+RemoveConceptCommand --> MentalModel : modifies
+CreateRelationshipCommand --> MentalModel : modifies
+DeleteRelationshipCommand --> MentalModel : modifies
+
+ILinkPredictor ..> LinkSuggestion : produces
+ILinkPredictor --> MentalModel : analyzes
+
+ConceptGraphicsItem --> Concept : represents
+RelationshipGraphicsItem --> Relationship : represents
+
+' Layout hints to prevent cutoff
+together {
+  class MainWindow
+  class GraphWidget
+  class SuggestionPanel
+}
+
+together {
+  class MentalModel
+  class Concept
+  class Relationship
+}
+
+together {
+  interface ICommand
+  class AddConceptCommand
+  class RemoveConceptCommand
+  class CreateRelationshipCommand
+  class DeleteRelationshipCommand
+}
+
+together {
+  interface ILinkPredictor
+  class CommonNeighborPredictor
+  class JaccardCoefficientPredictor
+  class PreferentialAttachmentPredictor
+}
+
+note top of ICommand
+  <b>Command Pattern</b>
+  Full undo/redo support
+  All operations reversible
+end note
+
+note top of ILinkPredictor
+  <b>Strategy Pattern</b>
+  Multiple AI algorithms
+  Runtime selection
+end note
+
+note bottom of MentalModel
+  <b>Observer Pattern</b>
+  Qt signals/slots
+  Auto UI updates
+end note
+
+@enduml
